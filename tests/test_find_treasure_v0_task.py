@@ -26,7 +26,7 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.assertEqual(3, treasure.y)
 
     def test_get_actions(self):
-        self.assertListEqual([MoveUp(), MoveDown(), MoveRight(), MoveLeft()], self.env.get_actions())
+        self.assertListEqual([0, 1, 2, 3], self.env.get_actions())
 
     def test_reset(self):
         self.env.step(0)
