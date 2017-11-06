@@ -39,10 +39,10 @@ class GridWorldEnv:
 
     def step(self, action_index):
         """
-        Perform one step with given action index and return (next_state, reward) pair.
+        Perform one step with given action index and return (reward, next_state, done) tuple.
 
         :param action_index: index of action for get_actions() list
-        :return: (next_state, reward) pair
+        :return: (reward, next_state, done) tuple
         """
         state = self.get_current_state()
 
@@ -68,7 +68,7 @@ class GridWorldEnv:
             if self.is_terminal():
                 observer.on_end(self.has_won())
 
-        return next_state, reward
+        return reward, next_state, self.is_terminal()
 
     def is_terminal(self):
         """
