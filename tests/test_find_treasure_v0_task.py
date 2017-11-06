@@ -11,11 +11,6 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.env.state.agent.x = 0
         self.env.state.agent.y = 0
 
-        self.move_up = MoveUp()
-        self.move_down = MoveDown()
-        self.move_right = MoveRight()
-        self.move_left = MoveLeft()
-
     def test_start_state(self):
         start_state = self.env.get_current_state()
 
@@ -31,11 +26,10 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.assertEqual(3, treasure.y)
 
     def test_get_actions(self):
-        actions = self.env.get_actions()
-        self.assertSetEqual({"MoveUp", "MoveDown", "MoveRight", "MoveLeft"}, {action.name for action in actions})
+        self.assertListEqual([MoveUp(), MoveDown(), MoveRight(), MoveLeft()], self.env.get_actions())
 
     def test_reset(self):
-        self.env.step(self.move_up)
+        self.env.step(0)
         self.env.reset()
 
         state = self.env.get_current_state()
@@ -45,27 +39,27 @@ class FindTreasureTaskTest(unittest.TestCase):
     def test_positive_goal(self):
         # (0, 0)
 
-        _, reward = self.env.step(self.move_up)
+        _, reward = self.env.step(0)
         self.assertFalse(self.env.is_terminal())
         self.assertEqual(-0.01, reward)
         # (0, 1)
 
-        _, reward = self.env.step(self.move_right)
+        _, reward = self.env.step(2)
         self.assertFalse(self.env.is_terminal())
         self.assertEqual(-0.01, reward)
         # (1, 1)
 
-        _, reward = self.env.step(self.move_up)
+        _, reward = self.env.step(0)
         self.assertFalse(self.env.is_terminal())
         self.assertEqual(-0.01, reward)
         # (1, 2)
 
-        _, reward = self.env.step(self.move_right)
+        _, reward = self.env.step(2)
         self.assertFalse(self.env.is_terminal())
         self.assertEqual(-0.01, reward)
         # (2, 2)
 
-        next_state, reward = self.env.step(self.move_up)
+        next_state, reward = self.env.step(0)
         self.assertTrue(self.env.is_terminal())
         self.assertEqual(1, reward)
         self.assertEqual(5, next_state.step)
@@ -76,8 +70,8 @@ class FindTreasureTaskTest(unittest.TestCase):
         next_state, reward = None, None
 
         for step in range(10):
-            self.env.step(self.move_up)
-            next_state, reward = self.env.step(self.move_down)
+            self.env.step(0)
+            next_state, reward = self.env.step(1)
 
         self.assertTrue(self.env.is_terminal())
         self.assertEqual(-0.01, reward)

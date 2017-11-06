@@ -16,10 +16,10 @@ class FindTreasureTask(GridWorldTask):
         - Treasure at fixed or random position
 
     Possible actions:
-        - MoveUp
-        - MoveDown
-        - MoveLeft
-        - MoveRight
+        - 0 - MoveUp
+        - 1 - MoveDown
+        - 2 - MoveRight
+        - 3 - MoveLeft
 
     Rewards:
         - Agent reaches the goal: 1

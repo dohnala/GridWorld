@@ -37,32 +37,26 @@ class GridWorldEnv:
         """
         return self.task.get_actions()
 
-    def get_possible_actions(self):
+    def step(self, action_index):
         """
-        Return list of possible actions in current state.
+        Perform one step with given action index and return (next_state, reward) pair.
 
-        :return: list of possible actions in current state
-        """
-        state = self.get_current_state()
-
-        return self.task.get_possible_actions(state)
-
-    def step(self, action):
-        """
-        Perform one step with given action and return (next_state, reward) pair.
-
-        :param action: action
+        :param action_index: index of action for get_actions() list
         :return: (next_state, reward) pair
         """
         state = self.get_current_state()
 
         if self.task.is_terminal(state):
-            raise Exception("Cannot perform step in terminal state.")
+            raise Exception("Cannot perform action in terminal state.")
 
-        if not self.task.is_action_possible(state, action):
-            raise Exception("Cannot perform given action, action is not valid at given state.")
+        actions = self.task.get_actions()
 
-        next_state = self.task.apply_action(state, action)
+        if not (0 <= action_index < len(actions)):
+            raise Exception("Cannot perform action with index " + action_index + ".")
+
+        action = actions[action_index]
+
+        next_state = action.apply(state)
         reward = self.task.get_reward(state, action, next_state)
 
         self.state = next_state

@@ -9,28 +9,30 @@ class MoveUpTest(unittest.TestCase):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        self.assertTrue(MoveUp().is_valid(state))
+        self.assertTrue(MoveUp().__is_valid__(state))
 
     def test_is_valid_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 9))
 
-        self.assertFalse(MoveUp().is_valid(state))
+        self.assertFalse(MoveUp().__is_valid__(state))
 
     def test_apply(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        next_state = MoveUp().apply_if_valid(state)
+        next_state = MoveUp().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(1, next_state.agent.y)
 
     def test_apply_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 9))
 
-        next_state = MoveUp().apply_if_valid(state)
+        next_state = MoveUp().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(9, next_state.agent.y)
 
 
@@ -39,28 +41,30 @@ class MoveDownTest(unittest.TestCase):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 5))
 
-        self.assertTrue(MoveDown().is_valid(state))
+        self.assertTrue(MoveDown().__is_valid__(state))
 
     def test_is_valid_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        self.assertFalse(MoveDown().is_valid(state))
+        self.assertFalse(MoveDown().__is_valid__(state))
 
     def test_apply(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 5))
 
-        next_state = MoveDown().apply_if_valid(state)
+        next_state = MoveDown().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(4, next_state.agent.y)
 
     def test_apply_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        next_state = MoveDown().apply_if_valid(state)
+        next_state = MoveDown().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(0, next_state.agent.y)
 
 
@@ -69,28 +73,30 @@ class MoveRightTest(unittest.TestCase):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        self.assertTrue(MoveRight().is_valid(state))
+        self.assertTrue(MoveRight().__is_valid__(state))
 
     def test_is_valid_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(9, 0))
 
-        self.assertFalse(MoveRight().is_valid(state))
+        self.assertFalse(MoveRight().__is_valid__(state))
 
     def test_apply(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        next_state = MoveRight().apply_if_valid(state)
+        next_state = MoveRight().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(1, next_state.agent.x)
 
     def test_apply_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(9, 0))
 
-        next_state = MoveRight().apply_if_valid(state)
+        next_state = MoveRight().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(9, next_state.agent.x)
 
 
@@ -99,26 +105,28 @@ class MoveLeftTest(unittest.TestCase):
         state = GridWorld(10, 10)
         state.add_agent(Agent(5, 0))
 
-        self.assertTrue(MoveLeft().is_valid(state))
+        self.assertTrue(MoveLeft().__is_valid__(state))
 
     def test_is_valid_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        self.assertFalse(MoveLeft().is_valid(state))
+        self.assertFalse(MoveLeft().__is_valid__(state))
 
     def test_apply(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(5, 0))
 
-        next_state = MoveLeft().apply_if_valid(state)
+        next_state = MoveLeft().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(4, next_state.agent.x)
 
     def test_apply_on_boundary(self):
         state = GridWorld(10, 10)
         state.add_agent(Agent(0, 0))
 
-        next_state = MoveLeft().apply_if_valid(state)
+        next_state = MoveLeft().apply(state)
 
+        self.assertEqual(1, next_state.step)
         self.assertEqual(0, next_state.agent.x)

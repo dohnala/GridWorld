@@ -1,26 +1,21 @@
 class GridWorldAction:
-    def __init__(self, name):
-        """
-        Initialize action with given name.
 
-        :param name: action name
-        """
-        self.name = name
-
-    def apply_if_valid(self, state):
+    def apply(self, state):
         """
         Apply action to given state if si valid and return next state.
 
         :param state: state
         :return: next state
         """
-        if self.is_valid(state):
-            copy = state.copy()
-            return self.apply(copy)
-        else:
-            return state
+        copy = state.copy()
+        copy.next_step()
 
-    def is_valid(self, state):
+        if self.__is_valid__(state):
+            return self.__apply__(copy)
+
+        return copy
+
+    def __is_valid__(self, state):
         """
         Return if action is valid in given state.
 
@@ -29,15 +24,13 @@ class GridWorldAction:
         """
         return False
 
-    def apply(self, state):
+    def __apply__(self, state):
         """
         Apply action to given state and return next state.
 
         :param state: state
         :return: next state
         """
-        state.next_step()
-
         return state
 
     def __eq__(self, other):
@@ -58,69 +51,49 @@ class MoveUp(GridWorldAction):
     """
     Move up agent in world.
     """
-
-    def __init__(self):
-        super().__init__("MoveUp")
-
-    def is_valid(self, state):
+    def __is_valid__(self, state):
         return state.agent.y < state.height - 1
 
-    def apply(self, state):
-        next_state = super().apply(state)
-        next_state.agent.y += 1
+    def __apply__(self, state):
+        state.agent.y += 1
 
-        return next_state
+        return state
 
 
 class MoveDown(GridWorldAction):
     """
     Move down agent in world.
     """
-
-    def __init__(self):
-        super().__init__("MoveDown")
-
-    def is_valid(self, state):
+    def __is_valid__(self, state):
         return state.agent.y > 0
 
-    def apply(self, state):
-        next_state = super().apply(state)
-        next_state.agent.y -= 1
+    def __apply__(self, state):
+        state.agent.y -= 1
 
-        return next_state
+        return state
 
 
 class MoveRight(GridWorldAction):
     """
     Move right agent in world.
     """
-
-    def __init__(self):
-        super().__init__("MoveRight")
-
-    def is_valid(self, state):
+    def __is_valid__(self, state):
         return state.agent.x < state.width - 1
 
-    def apply(self, state):
-        next_state = super().apply(state)
-        next_state.agent.x += 1
+    def __apply__(self, state):
+        state.agent.x += 1
 
-        return next_state
+        return state
 
 
 class MoveLeft(GridWorldAction):
     """
     Move left agent in world.
     """
-
-    def __init__(self):
-        super().__init__("MoveLeft")
-
-    def is_valid(self, state):
+    def __is_valid__(self, state):
         return state.agent.x > 0
 
-    def apply(self, state):
-        next_state = super().apply(state)
-        next_state.agent.x -= 1
+    def __apply__(self, state):
+        state.agent.x -= 1
 
-        return next_state
+        return state

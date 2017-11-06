@@ -20,44 +20,11 @@ class GridWorldTask:
 
     def get_actions(self):
         """
-        Return all actions.
+        Return list of all actions.
 
-        :return: all actions
+        :return: list of all actions
         """
         return []
-
-    def get_possible_actions(self, state):
-        """
-        Return actions which are valid in given state.
-
-        :param state: state
-        :return: actions
-        """
-        if self.is_terminal(state):
-            return []
-
-        return [action for action in self.get_actions() if action.is_valid(state)]
-
-    def is_action_possible(self, state, action):
-        """
-        Return if given action is valid at given state.
-
-        :param state: state
-        :param action: action
-        :return: if given action is valid at given state
-        """
-        return action in self.get_possible_actions(state)
-
-    @staticmethod
-    def apply_action(state, action):
-        """
-        Apply given action at given state.
-
-        :param state: state
-        :param action: action
-        :return: next state
-        """
-        return action.apply_if_valid(state)
 
     def get_reward(self, state, action, next_state):
         """
