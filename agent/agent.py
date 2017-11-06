@@ -2,6 +2,7 @@ class EpisodeResult:
     """
     Result of one episode.
     """
+
     def __init__(self, episode, reward, steps, has_won):
         self.episode = episode
         self.reward = reward
@@ -13,6 +14,7 @@ class Agent:
     """
     Agent interacting with an environment which can be trained or evaluated.
     """
+
     def __init__(self, env):
         self.env = env
 

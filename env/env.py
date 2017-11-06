@@ -123,6 +123,7 @@ class EnvObserver:
     """
     Observer which can listen for grid world environment changes.
     """
+
     def on_step(self, action, reward, next_state):
         """
         Handle step in environment.

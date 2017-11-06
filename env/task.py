@@ -2,6 +2,7 @@ class GridWorldTask:
     """
     Grid world task which acts like MDP.
     """
+
     def __init__(self, grid_world_generator):
         """
         Initialize task with given grid world generator.

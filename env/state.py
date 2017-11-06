@@ -80,6 +80,7 @@ class GridWorld:
 
         :return: list of free positions
         """
+
         def is_position_free(x, y):
             for grid_world_object in self.get_objects():
                 if grid_world_object.is_at(x, y):
@@ -204,5 +205,3 @@ class Treasure(GridWorldObject):
 
     def copy(self):
         return Treasure(self.x, self.y)
-
-

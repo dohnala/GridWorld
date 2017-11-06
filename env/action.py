@@ -1,5 +1,4 @@
 class GridWorldAction:
-
     def apply(self, state):
         """
         Apply action to given state if si valid and return next state.
@@ -51,6 +50,7 @@ class MoveUp(GridWorldAction):
     """
     Move up agent in world.
     """
+
     def __is_valid__(self, state):
         return state.agent.y < state.height - 1
 
@@ -64,6 +64,7 @@ class MoveDown(GridWorldAction):
     """
     Move down agent in world.
     """
+
     def __is_valid__(self, state):
         return state.agent.y > 0
 
@@ -77,6 +78,7 @@ class MoveRight(GridWorldAction):
     """
     Move right agent in world.
     """
+
     def __is_valid__(self, state):
         return state.agent.x < state.width - 1
 
@@ -90,6 +92,7 @@ class MoveLeft(GridWorldAction):
     """
     Move left agent in world.
     """
+
     def __is_valid__(self, state):
         return state.agent.x > 0
 

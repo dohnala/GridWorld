@@ -1,8 +1,7 @@
 import unittest
 
-from env.action import MoveUp, MoveDown, MoveRight, MoveLeft
 from env.env import GridWorldEnv
-from env.state import GridWorld, Agent, Treasure
+from env.state import Treasure
 
 
 class FindTreasureTaskTest(unittest.TestCase):

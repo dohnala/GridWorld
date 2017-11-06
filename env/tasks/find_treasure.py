@@ -1,8 +1,6 @@
-import numpy as np
-
 from env.action import MoveUp, MoveDown, MoveRight, MoveLeft
-from env.task import GridWorldTask
 from env.state import GridWorld, Agent, Treasure
+from env.task import GridWorldTask
 
 
 class FindTreasureTask(GridWorldTask):
@@ -29,6 +27,7 @@ class FindTreasureTask(GridWorldTask):
         - Agent reaches the goal
         - Defined steps elapsed
     """
+
     def __init__(self, width, height, episode_length, treasure_position):
         super().__init__(self.generate_grid_world)
 
@@ -45,7 +44,7 @@ class FindTreasureTask(GridWorldTask):
         if self.treasure_position:
             grid_world.add_object(Treasure(*self.treasure_position))
         else:
-            grid_world.add_object(Goal(grid_world.get_random_free_position()))
+            grid_world.add_object(Treasure(*grid_world.get_random_free_position()))
 
         return grid_world
 
