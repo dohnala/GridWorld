@@ -35,7 +35,7 @@ class GridWorldEnv:
 
         :return: list of all actions
         """
-        return self.task.get_actions()
+        return list(range(len(self.task.get_actions())))
 
     def step(self, action_index):
         """
