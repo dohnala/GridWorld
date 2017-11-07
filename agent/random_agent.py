@@ -9,7 +9,7 @@ class RandomAgent(Agent):
     """
 
     def __init__(self, env):
-        super().__init__(env)
+        super().__init__("Random agent", env)
 
     def __select_action__(self, state):
         # Select random action
