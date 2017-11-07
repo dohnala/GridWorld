@@ -29,10 +29,8 @@ class FindTreasureTask(GridWorldTask):
     """
 
     def __init__(self, width, height, episode_length, treasure_position):
-        super().__init__(self.generate_grid_world)
+        super().__init__(width, height, self.generate_grid_world)
 
-        self.width = width
-        self.height = height
         self.episode_length = episode_length
         self.treasure_position = treasure_position
 

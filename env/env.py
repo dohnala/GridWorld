@@ -21,6 +21,14 @@ class GridWorldEnv:
         self.observers = []
         self.reset()
 
+    def size(self):
+        """
+        Return grid world size as a tuple (width, height)
+
+        :return: grid world size
+        """
+        return self.task.width, self.task.height
+
     def get_current_state(self):
         """
         Return current state.

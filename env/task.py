@@ -3,12 +3,16 @@ class GridWorldTask:
     Grid world task which acts like MDP.
     """
 
-    def __init__(self, grid_world_generator):
+    def __init__(self, width, height, grid_world_generator):
         """
-        Initialize task with given grid world generator.
+        Initialize task with given width, height and grid world generator.
 
+        :param width: grid world width
+        :param height: grid world height
         :param grid_world_generator: grid world generator
         """
+        self.width = width
+        self.height = height
         self.grid_world_generator = grid_world_generator
 
     def get_start_state(self):
