@@ -186,6 +186,6 @@ class Experiment:
 
         parser.add_argument('--train', type=int, default=100, help='# of train episodes (default: 100)')
         parser.add_argument('--eval', type=int, default=10, help='# of eval episodes (default: 10)')
-        parser.add_argument('--log', type=int, default=10, help='log every # of episodes (default: 10)')
+        parser.add_argument('--log_every', type=int, default=10, help='log every # of episodes (default: 10)')
 
         return parser
