@@ -57,7 +57,7 @@ class Agent:
         while not self.env.is_terminal():
             reward += self.__step__()
 
-        steps = self.env.get_current_state().step
+        steps = self.env.state.step
         has_won = self.env.has_won()
 
         return EpisodeResult(episode, reward, steps, has_won)
@@ -68,7 +68,7 @@ class Agent:
 
         :return: reward
         """
-        state = self.env.get_current_state()
+        state = self.env.state
         action = self.__select_action__(state)
         reward, next_state, done = self.env.step(action)
 

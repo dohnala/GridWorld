@@ -17,33 +17,14 @@ class GridWorldEnv:
             raise ValueError("Unknown task: " + task_name)
 
         self.task = self.tasks[task_name]
+        self.width = self.task.width
+        self.height = self.task.height
+        self.actions = list(range(len(self.task.get_actions())))
+        self.num_actions = len(self.actions)
         self.state = None
         self.observers = []
+
         self.reset()
-
-    def size(self):
-        """
-        Return grid world size as a tuple (width, height)
-
-        :return: grid world size
-        """
-        return self.task.width, self.task.height
-
-    def get_current_state(self):
-        """
-        Return current state.
-
-        :return: current state
-        """
-        return self.state
-
-    def get_actions(self):
-        """
-        Return list of all actions.
-
-        :return: list of all actions
-        """
-        return list(range(len(self.task.get_actions())))
 
     def step(self, action_index):
         """
@@ -52,17 +33,15 @@ class GridWorldEnv:
         :param action_index: index of action for get_actions() list
         :return: (reward, next_state, done) tuple
         """
-        state = self.get_current_state()
+        state = self.state
 
         if self.task.is_terminal(state):
             raise Exception("Cannot perform action in terminal state.")
 
-        actions = self.task.get_actions()
-
-        if not (0 <= action_index < len(actions)):
+        if not (0 <= action_index < self.num_actions):
             raise Exception("Cannot perform action with index " + action_index + ".")
 
-        action = actions[action_index]
+        action = self.task.get_actions()[action_index]
 
         next_state = action.apply(state)
         reward = self.task.get_reward(state, action, next_state)
@@ -84,9 +63,7 @@ class GridWorldEnv:
 
         :return: if current state is terminal
         """
-        state = self.get_current_state()
-
-        return self.task.is_terminal(state)
+        return self.task.is_terminal(self.state)
 
     def has_won(self):
         """
@@ -94,9 +71,7 @@ class GridWorldEnv:
 
         :return: if agent has won
         """
-        state = self.get_current_state()
-
-        return self.task.is_winning(state)
+        return self.task.is_winning(self.state)
 
     def has_lost(self):
         """
@@ -104,19 +79,21 @@ class GridWorldEnv:
 
         :return: if agent has lost
         """
-        state = self.get_current_state()
-
-        return self.task.is_losing(state)
+        return self.task.is_losing(self.state)
 
     def reset(self):
         """
-        Reset environment to start state.
+        Reset environment and return current state.
+
+        :return current state
         """
         self.state = self.task.get_start_state()
 
         # notify observers
         for observer in self.observers:
             observer.on_reset(self.state)
+
+        return self.state
 
     def add_observer(self, observer):
         """

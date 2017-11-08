@@ -11,7 +11,7 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.env.state.agent.y = 0
 
     def test_start_state(self):
-        start_state = self.env.get_current_state()
+        start_state = self.env.state
 
         self.assertEqual(4, start_state.width)
         self.assertEqual(4, start_state.height)
@@ -25,13 +25,13 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.assertEqual(3, treasure.y)
 
     def test_get_actions(self):
-        self.assertListEqual([0, 1, 2, 3], self.env.get_actions())
+        self.assertListEqual([0, 1, 2, 3], self.env.actions)
 
     def test_reset(self):
         self.env.step(0)
         self.env.reset()
 
-        state = self.env.get_current_state()
+        state = self.env.state
 
         self.assertEqual(0, state.step)
 

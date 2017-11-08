@@ -4,70 +4,70 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from agent.encoder import FeatureLayerEncoder, OneHotEncoder
-from env.env import GridWorldEnv
+from env.state import GridWorld, Agent, Treasure
 
 
 class FeatureLayerTest(unittest.TestCase):
-    def setUp(self):
-        self.env = GridWorldEnv("find_treasure_v0")
-        self.env.state.agent.x = 0
-        self.env.state.agent.y = 0
 
     def test_size_with_no_layers(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=False, treasure_position=False)
+        encoder = FeatureLayerEncoder(4, 4, agent_position=False, treasure_position=False)
 
         self.assertEqual((4, 4, 0), encoder.size())
 
-    def test_encode_with_no_layers(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=False, treasure_position=False)
+    def test_encode_state_with_no_layers(self):
+        state = GridWorld(4, 4)
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = FeatureLayerEncoder(4, 4, agent_position=False, treasure_position=False)
 
-        assert_array_equal(np.empty((4, 4, 0)), encoded_state)
+        assert_array_equal(np.empty((4, 4, 0)), encoder.encode(state))
 
     def test_size_with_agent_position_layer(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=True, treasure_position=False)
+        encoder = FeatureLayerEncoder(4, 4, agent_position=True, treasure_position=False)
 
         self.assertEqual((4, 4, 1), encoder.size())
 
-    def test_encode_with_agent_position_layer(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=True, treasure_position=False)
+    def test_encode_state_with_agent_position_layer(self):
+        state = GridWorld(4, 4)
+        state.add_agent(Agent(0, 0))
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = FeatureLayerEncoder(4, 4, agent_position=True, treasure_position=False)
 
         expected = [[[1, 0, 0, 0],
                      [0, 0, 0, 0],
                      [0, 0, 0, 0],
                      [0, 0, 0, 0]]]
 
-        assert_array_equal(expected, encoded_state)
+        assert_array_equal(expected, encoder.encode(state))
 
     def test_size_with_treasure_position_layer(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=False, treasure_position=True)
+        encoder = FeatureLayerEncoder(4, 4, agent_position=False, treasure_position=True)
 
         self.assertEqual((4, 4, 1), encoder.size())
 
     def test_encode_with_treasure_position_layer(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=False, treasure_position=True)
+        state = GridWorld(4, 4)
+        state.add_object(Treasure(2, 3))
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = FeatureLayerEncoder(4, 4, agent_position=False, treasure_position=True)
 
         expected = [[[0, 0, 0, 0],
                      [0, 0, 0, 0],
                      [0, 0, 0, 1],
                      [0, 0, 0, 0]]]
 
-        assert_array_equal(expected, encoded_state)
+        assert_array_equal(expected, encoder.encode(state))
 
     def test_size_with_multiple_layers(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=True, treasure_position=True)
+        encoder = FeatureLayerEncoder(4, 4, agent_position=True, treasure_position=True)
 
         self.assertEqual((4, 4, 2), encoder.size())
 
     def test_encode_with_multiple_layers(self):
-        encoder = FeatureLayerEncoder(self.env, agent_position=True, treasure_position=True)
+        state = GridWorld(4, 4)
+        state.add_agent(Agent(0, 0))
+        state.add_object(Treasure(2, 3))
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = FeatureLayerEncoder(4, 4, agent_position=True, treasure_position=True)
 
         expected = [[[1, 0, 0, 0],
                      [0, 0, 0, 0],
@@ -78,66 +78,66 @@ class FeatureLayerTest(unittest.TestCase):
                      [0, 0, 0, 1],
                      [0, 0, 0, 0]]]
 
-        assert_array_equal(expected, encoded_state)
+        assert_array_equal(expected, encoder.encode(state))
 
 
 class OneHotEncoderTest(unittest.TestCase):
-    def setUp(self):
-        self.env = GridWorldEnv("find_treasure_v0")
-        self.env.state.agent.x = 0
-        self.env.state.agent.y = 0
 
     def test_size_with_no_layers(self):
-        encoder = OneHotEncoder(self.env, agent_position=False, treasure_position=False)
+        encoder = OneHotEncoder(4, 4, agent_position=False, treasure_position=False)
 
         self.assertEqual(0, encoder.size())
 
     def test_encode_with_no_layers(self):
-        encoder = OneHotEncoder(self.env, agent_position=False, treasure_position=False)
+        state = GridWorld(4, 4)
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = OneHotEncoder(4, 4, agent_position=False, treasure_position=False)
 
-        assert_array_equal(np.empty(0), encoded_state)
+        assert_array_equal(np.empty(0), encoder.encode(state))
 
     def test_size_with_agent_position_layer(self):
-        encoder = OneHotEncoder(self.env, agent_position=True, treasure_position=False)
+        encoder = OneHotEncoder(4, 4, agent_position=True, treasure_position=False)
 
         self.assertEqual(16, encoder.size())
 
     def test_encode_with_agent_position_layer(self):
-        encoder = OneHotEncoder(self.env, agent_position=True, treasure_position=False)
+        state = GridWorld(4, 4)
+        state.add_agent(Agent(0, 0))
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = OneHotEncoder(4, 4, agent_position=True, treasure_position=False)
 
         expected = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        assert_array_equal(expected, encoded_state)
+        assert_array_equal(expected, encoder.encode(state))
 
     def test_size_with_treasure_position_layer(self):
-        encoder = OneHotEncoder(self.env, agent_position=False, treasure_position=True)
+        encoder = OneHotEncoder(4, 4, agent_position=False, treasure_position=True)
 
         self.assertEqual(16, encoder.size())
 
     def test_encode_with_treasure_position_layer(self):
-        encoder = OneHotEncoder(self.env, agent_position=False, treasure_position=True)
+        state = GridWorld(4, 4)
+        state.add_object(Treasure(2, 3))
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = OneHotEncoder(4, 4, agent_position=False, treasure_position=True)
 
         expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
 
-        assert_array_equal(expected, encoded_state)
+        assert_array_equal(expected, encoder.encode(state))
 
     def test_size_with_multiple_layers(self):
-        encoder = OneHotEncoder(self.env, agent_position=True, treasure_position=True)
+        encoder = OneHotEncoder(4, 4, agent_position=True, treasure_position=True)
 
         self.assertEqual(32, encoder.size())
 
     def test_encode_with_multiple_layers(self):
-        encoder = OneHotEncoder(self.env, agent_position=True, treasure_position=True)
+        state = GridWorld(4, 4)
+        state.add_agent(Agent(0, 0))
+        state.add_object(Treasure(2, 3))
 
-        encoded_state = encoder.encode(self.env.get_current_state())
+        encoder = OneHotEncoder(4, 4, agent_position=True, treasure_position=True)
 
         expected = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
 
-        assert_array_equal(expected, encoded_state)
+        assert_array_equal(expected, encoder.encode(state))

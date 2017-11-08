@@ -6,9 +6,9 @@ from env.state import Treasure
 class GridWorldEncoder:
     """Encodes a grid world into suitable format used for agent's model."""
 
-    def __init__(self, env, agent_position=True, treasure_position=False):
-        self.env = env
-        self.width, self.height = env.size()
+    def __init__(self, width, height, agent_position=True, treasure_position=False):
+        self.width = width
+        self.height = height
         self.agent_position = agent_position
         self.treasure_position = treasure_position
 
@@ -24,8 +24,8 @@ class FeatureLayerEncoder(GridWorldEncoder):
     Encodes a grid world as list of stacked feature layers.
     """
 
-    def __init__(self, env, agent_position=True, treasure_position=False):
-        super(FeatureLayerEncoder, self).__init__(env, agent_position, treasure_position)
+    def __init__(self, width, height, agent_position=True, treasure_position=False):
+        super(FeatureLayerEncoder, self).__init__(width, height, agent_position, treasure_position)
 
         self.num_layers = self.__get_num_layers__()
 
@@ -92,8 +92,8 @@ class OneHotEncoder(FeatureLayerEncoder):
     Encodes a grid world as one hot vector.
     """
 
-    def __init__(self, env, agent_position=True, treasure_position=False):
-        super(OneHotEncoder, self).__init__(env, agent_position, treasure_position)
+    def __init__(self, width, height, agent_position=True, treasure_position=False):
+        super(OneHotEncoder, self).__init__(width, height, agent_position, treasure_position)
 
     def size(self):
         """

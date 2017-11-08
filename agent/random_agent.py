@@ -13,4 +13,4 @@ class RandomAgent(Agent):
 
     def __select_action__(self, state):
         # Select random action
-        return np.random.choice(self.env.get_actions())
+        return np.random.choice(self.env.actions)
