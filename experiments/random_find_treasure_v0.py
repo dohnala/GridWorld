@@ -4,7 +4,7 @@ from experiments.experiment import Experiment
 
 class FindTreasureV0(Experiment):
     """
-    Experiment of Random agent for find_reasure_v0 task.
+    Experiment of Random agent for find_treasure_v0 task.
     """
 
     def __init__(self):
