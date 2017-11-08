@@ -62,18 +62,21 @@ class FeatureLayerEncoder(GridWorldEncoder):
     def __create_agent_position_layer__(self, state):
         agent = state.agent
 
-        layer = np.zeros((self.width, self.height))
+        layer = self.__create_layer__()
         layer[agent.x][agent.y] = 1
 
         return layer
 
     def __create_treasure_position_layer__(self, state):
-        layer = np.zeros((self.width, self.height))
+        layer = self.__create_layer__()
 
         for treasure in state.get_objects_by_type(Treasure):
             layer[treasure.x][treasure.y] = 1
 
         return layer
+
+    def __create_layer__(self):
+        return np.zeros((self.width, self.height), dtype=np.float32)
 
     def __get_num_layers__(self):
         num_layers = 0
