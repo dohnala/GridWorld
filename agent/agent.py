@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class EpisodeResult:
     """
     Result of one episode.
@@ -8,6 +11,14 @@ class EpisodeResult:
         self.reward = reward
         self.steps = steps
         self.has_won = has_won
+
+
+class RunPhase(Enum):
+    """
+    Mark a running phase which agent can be in.
+    """
+    TRAIN = 0
+    EVAL = 1
 
 
 class Agent:
@@ -25,10 +36,10 @@ class Agent:
 
         :param num_episodes: number of episodes to train
         :param result_writer: writer to write episode results into
-        :return:
+        :return: None
         """
         for episode in range(num_episodes):
-            result = self.__episode__(episode)
+            result = self.__episode__(episode, RunPhase.TRAIN)
             result_writer.add_result(result)
 
     def eval(self, num_episodes, result_writer):
@@ -37,17 +48,18 @@ class Agent:
 
         :param num_episodes: number of episodes to evaluate
         :param result_writer: writer to write episode results into
-        :return:
+        :return: None
         """
         for episode in range(num_episodes):
-            result = self.__episode__(episode)
+            result = self.__episode__(episode, RunPhase.EVAL)
             result_writer.add_result(result)
 
-    def __episode__(self, episode):
+    def __episode__(self, episode, phase):
         """
         Play one episode and return result.
 
         :param episode: current episode
+        :param phase: current phase
         :return: episode result
         """
         self.env.reset()
@@ -55,37 +67,45 @@ class Agent:
         reward = 0
 
         while not self.env.is_terminal():
-            reward += self.__step__()
+            reward += self.__step__(phase)
 
         steps = self.env.state.step
         has_won = self.env.has_won()
 
-        return EpisodeResult(episode, reward, steps, has_won)
+        result = EpisodeResult(episode, reward, steps, has_won)
 
-    def __step__(self):
+        self.__after_episode__(episode, phase, result)
+
+        return result
+
+    def __step__(self, phase):
         """
         Take one step on the environment and return obtained reward.
 
+        :param phase: current phase
         :return: reward
         """
         state = self.env.state
-        action = self.__select_action__(state)
+        action = self.__select_action__(state, phase)
         reward, next_state, done = self.env.step(action)
 
-        self.__observe_transition(state, action, reward, next_state, done)
+        if phase == RunPhase.TRAIN:
+            # Observer transition only in TRAIN phase
+            self.__observe_transition__(state, action, reward, next_state, done)
 
         return reward
 
-    def __select_action__(self, state):
+    def __select_action__(self, state, phase):
         """
         Select an action to take for given state.
 
         :param state: current state
+        :param phase: current phase
         :return: action to take
         """
         pass
 
-    def __observe_transition(self, state, action, reward, next_state, done):
+    def __observe_transition__(self, state, action, reward, next_state, done):
         """
         Observer current transition.
 
@@ -94,5 +114,17 @@ class Agent:
         :param reward: reward obtained for given action
         :param next_state: state action result in
         :param done: if next_state is terminal
+        :return None
+        """
+        pass
+
+    def __after_episode__(self, episode, phase, result):
+        """
+        Called after an episode is finished.
+
+        :param episode: current episode
+        :param phase: current phase
+        :param result: episode result
+        :return: None
         """
         pass
