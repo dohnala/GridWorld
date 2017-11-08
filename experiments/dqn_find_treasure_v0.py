@@ -15,7 +15,7 @@ class FindTreasureV0(Experiment):
 
     def create_agent(self, env):
         encoder = OneHotEncoder(env.width, env.height)
-        model = NNModel(encoder, env.num_actions, hidden_units=[16])
+        model = NNModel(encoder, env.num_actions)
 
         return DQNAgent(env, model,
                         learning_rate=0.01,
