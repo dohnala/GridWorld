@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -21,7 +22,7 @@ class Model(nn.Module):
         self.encoder = encoder
         self.num_actions = num_actions
 
-    def forward(self, state):
+    def forward(self, states):
         pass
 
 
@@ -52,14 +53,16 @@ class NNModel(Model):
 
         self.output = nn.Linear(input_size, num_actions)
 
-    def forward(self, state):
+    def forward(self, states):
         """
         Return action values computed by forward pass and return them as numpy array.
 
-        :param state: state
-        :return: action values
+        :param states: list of states
+        :return: action values for given states
         """
-        x = Variable(torch.from_numpy(self.encoder.encode(state)))
+        # Encode given states using encoder and turn them into variable
+        x = np.array(list(map(lambda state: self.encoder.encode(state), states)))
+        x = Variable(torch.from_numpy(x))
 
         result = x
 
