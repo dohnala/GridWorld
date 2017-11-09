@@ -27,9 +27,10 @@ class Agent:
     Agent interacting with an environment which can be trained or evaluated.
     """
 
-    def __init__(self, name, env):
+    def __init__(self, name, env, model):
         self.name = name
         self.env = env
+        self.model = model
 
     def train(self, num_episodes, result_writer):
         """
@@ -39,6 +40,9 @@ class Agent:
         :param result_writer: writer to write episode results into
         :return: None
         """
+        # Set model to train mode
+        self.model.train()
+
         for episode in range(num_episodes):
             result = self.__episode__(episode, RunPhase.TRAIN)
             result_writer.add_result(result)
@@ -51,6 +55,9 @@ class Agent:
         :param result_writer: writer to write episode results into
         :return: None
         """
+        # Set model to eval mode
+        self.model.eval()
+
         for episode in range(num_episodes):
             result = self.__episode__(episode, RunPhase.EVAL)
             result_writer.add_result(result)

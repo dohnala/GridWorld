@@ -24,14 +24,13 @@ class DQNAgent(Agent):
         :param exploration_policy: exploration policy used during training
         .param n_step: how many steps to use to compute targets
         """
-        super(DQNAgent, self).__init__("DQN agent", env)
+        super(DQNAgent, self).__init__("DQN agent", env, model)
 
-        self.model = model
         self.learning_rate = learning_rate
         self.discount = discount
         self.train_policy = exploration_policy
         self.eval_policy = GreedyPolicy()
-        self.n_step = 1
+        self.n_step = n_step
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
         self.transitions = []
