@@ -32,7 +32,7 @@ class DQNAgent(Agent):
         self.eval_policy = GreedyPolicy()
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
-        self.current_loss = None
+        self.last_loss = None
 
     def __select_action__(self, state, phase):
         # Run model to get action values and convert them to numpy array
@@ -75,9 +75,12 @@ class DQNAgent(Agent):
         self.optimizer.step()
 
         # Save the loss
-        self.current_loss = loss.data.numpy()
+        self.last_loss = loss.data.numpy()
 
     def __after_episode__(self, episode, phase, result):
         if phase == RunPhase.TRAIN:
             # Update policy after each training episode
             self.train_policy.update()
+
+            # Add last loss to the result
+            result.loss = self.last_loss

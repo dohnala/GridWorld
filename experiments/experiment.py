@@ -22,6 +22,7 @@ class Result:
         self.rewards_per_episode = deque(maxlen=rolling_mean_window)
         self.steps_per_episode = deque(maxlen=rolling_mean_window)
         self.wins = deque(maxlen=rolling_mean_window)
+        self.losses_per_episode = deque(maxlen=rolling_mean_window)
 
         self.observers = []
 
@@ -35,6 +36,7 @@ class Result:
         self.rewards_per_episode.append(episode_result.reward)
         self.steps_per_episode.append(episode_result.steps)
         self.wins.append(1 if episode_result.has_won else 0)
+        self.losses_per_episode.append(episode_result.loss if episode_result.loss else np.nan)
 
         # Notify observers
         for observer in self.observers:
@@ -63,6 +65,14 @@ class Result:
         :return: mean of steps done for each episode
         """
         return np.mean(self.steps_per_episode)
+
+    def get_mean_loss(self):
+        """
+        Return mean of losses.
+
+        :return: mean of losses
+        """
+        return np.mean(self.losses_per_episode)
 
     def add_observer(self, observer):
         """
@@ -131,9 +141,10 @@ class Experiment:
 
         def handle_train_result(result):
             if result == num_episodes or result.num_episodes % log_every == 0:
-                logger.info("Episode {:4d}/{} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
+                logger.info("Episode {:4d}/{} - loss:{:>11f}, accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
                     result.num_episodes,
                     num_episodes,
+                    result.get_mean_loss(),
                     result.get_accuracy(),
                     result.get_mean_reward(),
                     result.get_mean_steps()))

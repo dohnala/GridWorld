@@ -6,11 +6,12 @@ class EpisodeResult:
     Result of one episode.
     """
 
-    def __init__(self, episode, reward, steps, has_won):
-        self.episode = episode
-        self.reward = reward
-        self.steps = steps
-        self.has_won = has_won
+    def __init__(self):
+        self.episode = None
+        self.reward = None
+        self.steps = None
+        self.has_won = None
+        self.loss = None
 
 
 class RunPhase(Enum):
@@ -72,7 +73,12 @@ class Agent:
         steps = self.env.state.step
         has_won = self.env.has_won()
 
-        result = EpisodeResult(episode, reward, steps, has_won)
+        # Create an episode result and fill it
+        result = EpisodeResult()
+        result.episode = episode
+        result.reward = reward
+        result.steps = steps
+        result.has_won = has_won
 
         self.__after_episode__(episode, phase, result)
 
