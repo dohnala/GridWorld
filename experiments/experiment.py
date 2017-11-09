@@ -5,7 +5,6 @@ from timeit import default_timer as timer
 
 import numpy as np
 
-from agent.random_agent import RandomAgent
 from env.env import GridWorldEnv
 
 logging.config.fileConfig("logging.conf")
@@ -90,7 +89,7 @@ class Experiment:
         :param env: environment
         :return: agent
         """
-        return RandomAgent(env)
+        pass
 
     def run(self):
         """
@@ -101,6 +100,9 @@ class Experiment:
         env = GridWorldEnv(self.task)
         agent = self.create_agent(env)
 
+        if agent is None:
+            raise ValueError("No agent specified")
+
         # Info
         logger.info("")
         logger.info("Task: {}".format(self.task))
@@ -109,10 +111,12 @@ class Experiment:
 
         # Training
         if args.train:
+            # noinspection PyTypeChecker
             self.train(agent, args.train, args.log_every)
 
         # Evaluating
         if args.eval:
+            # noinspection PyTypeChecker
             self.eval(agent, args.eval, args.log_every)
 
     @staticmethod
