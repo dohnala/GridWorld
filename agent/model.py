@@ -41,16 +41,16 @@ class NNModel(Model):
         """
         super(NNModel, self).__init__(encoder, num_actions)
 
-        self.hidden = []
-
         input_size = encoder.size()
 
         # Create hidden layers
+        layers = []
         if hidden_units:
             for h in hidden_units:
-                self.hidden.append(nn.Linear(input_size, h))
+                layers.append(nn.Linear(input_size, h))
                 input_size = h
 
+        self.hidden = nn.ModuleList(layers)
         self.output = nn.Linear(input_size, num_actions)
 
     def forward(self, states):
