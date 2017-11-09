@@ -1,5 +1,7 @@
 from enum import Enum
 
+import torch
+
 
 class EpisodeResult:
     """
@@ -61,6 +63,24 @@ class Agent:
         for episode in range(num_episodes):
             result = self.__episode__(episode, RunPhase.EVAL)
             result_writer.add_result(result)
+
+    def save(self, file):
+        """
+        Save the model to given file.
+
+        :param file: file
+        :return: None
+        """
+        torch.save({'model': self.model.state_dict()}, file)
+
+    def load(self, file):
+        """
+        Load the model from given file.
+
+        :param file: file
+        :return: None
+        """
+        self.model.load_state_dict(torch.load(file)['model'])
 
     def __episode__(self, episode, phase):
         """

@@ -1,5 +1,6 @@
 import argparse
 import logging.config
+import os
 from collections import deque
 from timeit import default_timer as timer
 
@@ -119,10 +120,25 @@ class Experiment:
         logger.info("Agent: {}".format(agent.name))
         logger.info("")
 
+        # Loading the model
+        if args.load:
+            if os.path.isfile(args.load):
+                agent.load(args.load)
+                logger.info("Model loaded from {}".format(args.load))
+            else:
+                logger.error("Model couldn't be loaded. File {} doesn't exist".format(args.load))
+            logger.info("")
+
         # Training
         if args.train:
             # noinspection PyTypeChecker
             self.train(agent, args.train, args.log_every)
+
+            # Saving the model
+            if args.save:
+                agent.save(args.save)
+                logger.info("Model saved to {}".format(args.save))
+                logger.info("")
 
         # Evaluating
         if args.eval:
@@ -199,8 +215,10 @@ class Experiment:
         """
         parser = argparse.ArgumentParser(description='Grid world experiment')
 
-        parser.add_argument('--train', type=int, default=100, help='# of train episodes (default: 100)')
-        parser.add_argument('--eval', type=int, default=10, help='# of eval episodes (default: 10)')
+        parser.add_argument('--train', type=int, help='# of train episodes (default: 100)')
+        parser.add_argument('--eval', type=int, help='# of eval episodes (default: 10)')
+        parser.add_argument('--save', type=str, help="file to save model to")
+        parser.add_argument('--load', type=str, help="file to load model from")
         parser.add_argument('--log_every', type=int, default=10, help='log every # of episodes (default: 10)')
 
         return parser
