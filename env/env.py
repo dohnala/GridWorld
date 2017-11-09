@@ -5,7 +5,8 @@ class GridWorldEnv:
     """
     Grid world environment which agents can interact with.
     """
-    tasks = {"find_treasure_v0": FindTreasureTask(width=9, height=9, episode_length=60, treasure_position=(6, 7))}
+    tasks = {"find_treasure_v0": FindTreasureTask(width=9, height=9, episode_length=60, treasure_position=(6, 7)),
+             "find_treasure_v1": FindTreasureTask(width=4, height=4, episode_length=20)}
 
     def __init__(self, task_name):
         """

@@ -28,7 +28,7 @@ class FindTreasureTask(GridWorldTask):
         - Defined steps elapsed
     """
 
-    def __init__(self, width, height, episode_length, treasure_position):
+    def __init__(self, width, height, episode_length, treasure_position=None):
         super().__init__(width, height, self.generate_grid_world)
 
         self.episode_length = episode_length
