@@ -156,7 +156,7 @@ class Experiment:
         """
 
         def handle_train_result(result):
-            if result == num_episodes or result.num_episodes % log_every == 0:
+            if result.num_episodes == num_episodes or result.num_episodes % log_every == 0:
                 logger.info("Episode {:4d}/{} - loss:{:>11f}, accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
                     result.num_episodes,
                     num_episodes,
@@ -187,7 +187,7 @@ class Experiment:
         """
 
         def handle_eval_result(result):
-            if result == num_episodes or result.num_episodes % log_every == 0:
+            if result.num_episodes == num_episodes or result.num_episodes % log_every == 0:
                 logger.info("Episode {:4d}/{} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
                     result.num_episodes,
                     num_episodes,
