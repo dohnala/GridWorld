@@ -13,7 +13,7 @@ class DQNAgent(Agent):
     Deep-Q-Network agent.
     """
 
-    def __init__(self, env, model, learning_rate, discount, exploration_policy):
+    def __init__(self, env, model, learning_rate, discount, exploration_policy, n_step=1):
         """
         Initialize the agent.
 
@@ -22,6 +22,7 @@ class DQNAgent(Agent):
         :param learning_rate: learning rate
         :param discount: discount factor
         :param exploration_policy: exploration policy used during training
+        .param n_step: how many steps to use to compute targets
         """
         super(DQNAgent, self).__init__("DQN agent", env)
 
@@ -30,13 +31,15 @@ class DQNAgent(Agent):
         self.discount = discount
         self.train_policy = exploration_policy
         self.eval_policy = GreedyPolicy()
+        self.n_step = 1
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
+        self.transitions = []
         self.last_loss = None
 
     def __select_action__(self, state, phase):
         # Run model to get action values and convert them to numpy array
-        action_values = self.model(state).data.numpy()
+        action_values = self.model([state]).data[0].numpy()
 
         # Select action using policy
         if phase == RunPhase.TRAIN:
@@ -46,24 +49,67 @@ class DQNAgent(Agent):
             return self.eval_policy.select_action(action_values)
 
     def __observe_transition__(self, state, action, reward, next_state, done):
-        # Compute target for given transition
+        # Store transition
+        self.transitions.append((state, action, reward, next_state, done))
+
+        # Perform rollout when episode is finished or N transitions are gathered
         if done:
-            # target = r
-            target = reward
-        else:
-            # target = r + d * maxQ(s', a')
-            max_value = self.model(next_state).data.numpy().max()
-            target = reward + self.discount * max_value
+            # Value of terminal state is 0
+            self.__rollout__(0)
+        elif len(self.transitions) == self.n_step:
+            # Value of next_state is maximum value across actions
+            self.__rollout__(self.model([next_state]).data[0].numpy().max())
 
-        # Train the model using given target
-        self.__train__(state, action, target)
+    def __rollout__(self, value):
+        """
+        Perform rollout on list of stored transitions and compute targets for training.
 
-    def __train__(self, state, action, target):
-        # Find model prediction for given state and action
-        prediction = self.model(state).gather(0, Variable(torch.from_numpy(np.array([action]))))
+        :param value: value of current state
+        :return: None
+        """
+        transitions = np.array(self.transitions)
 
-        # Compute Huber loss from prediction and target
-        loss = F.smooth_l1_loss(prediction, Variable(torch.from_numpy(np.array([target], dtype=np.float32))))
+        states = transitions[:, 0]
+        actions = transitions[:, 1]
+        rewards = transitions[:, 2]
+        targets = np.zeros(len(rewards))
+
+        target = value
+
+        # Compute targets from rewards
+        for i in reversed(range(len(rewards))):
+            target = rewards[i] + self.discount * target
+            targets[i] = target
+
+        # Train the model using given targets
+        self.__train__(states, actions, targets)
+
+        # Clear transitions on the end of rollout
+        self.transitions = []
+
+    def __train__(self, states, actions, targets):
+        """
+        Train the model using given targets.
+
+        :param states: states
+        :param actions: actions
+        :param targets: targets
+        :return: None
+        """
+        # Compute model outputs for given states
+        outputs = self.model(states)
+
+        # Turn actions into variable
+        actions = Variable(torch.from_numpy(np.array(actions, dtype=np.int64)))
+
+        # Compute predictions of actions in given states
+        predictions = outputs.gather(1, actions.unsqueeze(1)).squeeze()
+
+        # Turn targets into variable
+        targets = Variable(torch.from_numpy(np.array(targets, dtype=np.float32)))
+
+        # Compute Huber loss from predictions and targets
+        loss = F.smooth_l1_loss(predictions, targets)
 
         # Zero all gradients
         self.optimizer.zero_grad()
