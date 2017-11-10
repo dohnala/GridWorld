@@ -19,7 +19,7 @@ class FindTreasureV0(Experiment):
 
         return DQNAgent(env, model,
                         learning_rate=0.01,
-                        discount=0.9,
+                        discount=0.95,
                         exploration_policy=EpsilonGreedyPolicy(0.5, 0.01, 150),
                         n_step=8)
 
