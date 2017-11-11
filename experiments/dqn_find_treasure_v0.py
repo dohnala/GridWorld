@@ -24,7 +24,8 @@ class FindTreasureV0(Experiment):
                         optimizer=optim.Adam(model.parameters(), lr=0.01),
                         discount=0.95,
                         exploration_policy=EpsilonGreedyPolicy(0.5, 0.01, 150),
-                        n_step=8)
+                        n_step=8,
+                        sync_target=10)
 
 
 if __name__ == "__main__":

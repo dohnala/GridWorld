@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -12,7 +14,7 @@ class DQNAgent(Agent):
     Deep-Q-Network agent.
     """
 
-    def __init__(self, env, model, optimizer, discount, exploration_policy, n_step=1):
+    def __init__(self, env, model, optimizer, discount, exploration_policy, n_step=1, sync_target=None):
         """
         Initialize the agent.
 
@@ -21,7 +23,8 @@ class DQNAgent(Agent):
         :param optimizer: optimizer
         :param discount: discount factor
         :param exploration_policy: exploration policy used during training
-        .param n_step: how many steps to use to compute targets
+        :param n_step: how many steps to use to compute targets
+        :param sync_target: after how many episodes should target model be synced with model
         """
         super(DQNAgent, self).__init__("DQN agent", env, model, optimizer)
 
@@ -29,6 +32,9 @@ class DQNAgent(Agent):
         self.train_policy = exploration_policy
         self.eval_policy = GreedyPolicy()
         self.n_step = n_step
+
+        self.sync_target = sync_target
+        self.target_model = copy.deepcopy(self.model) if sync_target else self.model
 
         self.transitions = []
         self.last_loss = None
@@ -54,7 +60,7 @@ class DQNAgent(Agent):
             self.__rollout__(0)
         elif len(self.transitions) == self.n_step:
             # Value of next_state is maximum value across actions
-            self.__rollout__(self.model([next_state]).data[0].numpy().max())
+            self.__rollout__(self.target_model([next_state]).data[0].numpy().max())
 
     def __rollout__(self, value):
         """
@@ -126,3 +132,15 @@ class DQNAgent(Agent):
 
             # Add last loss to the result
             result.loss = self.last_loss
+
+            # Synchronize target model every sync_target episodes
+            if self.sync_target and episode % self.sync_target == 0:
+                self.__sync_target__()
+
+    def __sync_target__(self):
+        """
+        Synchronize target model with model by copying its state.
+
+        :return: None
+        """
+        self.target_model.load_state_dict(self.model.state_dict())
