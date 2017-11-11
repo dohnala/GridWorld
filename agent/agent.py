@@ -72,7 +72,8 @@ class Agent:
         :param file: file
         :return: None
         """
-        torch.save({'model': self.model.state_dict()}, file)
+        torch.save({'model': self.model.state_dict(),
+                    'optimizer': self.optimizer.state_dict()}, file)
 
     def load(self, file):
         """
@@ -81,7 +82,10 @@ class Agent:
         :param file: file
         :return: None
         """
-        self.model.load_state_dict(torch.load(file)['model'])
+        checkpoint = torch.load(file)
+
+        self.model.load_state_dict(checkpoint['model'])
+        self.optimizer.load_state_dict(checkpoint["optimizer"])
 
     def __episode__(self, episode, phase):
         """
