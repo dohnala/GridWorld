@@ -29,10 +29,11 @@ class Agent:
     Agent interacting with an environment which can be trained or evaluated.
     """
 
-    def __init__(self, name, env, model):
+    def __init__(self, name, env, model, optimizer):
         self.name = name
         self.env = env
         self.model = model
+        self.optimizer = optimizer
 
     def train(self, num_episodes, result_writer):
         """

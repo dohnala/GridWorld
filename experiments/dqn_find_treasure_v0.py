@@ -1,3 +1,5 @@
+import torch.optim as optim
+
 from agent.dqn_agent import DQNAgent
 from agent.encoder import OneHotEncoder
 from agent.model import NNModel
@@ -17,8 +19,9 @@ class FindTreasureV0(Experiment):
         encoder = OneHotEncoder(env.width, env.height)
         model = NNModel(encoder, env.num_actions)
 
-        return DQNAgent(env, model,
-                        learning_rate=0.01,
+        return DQNAgent(env=env,
+                        model=model,
+                        optimizer=optim.Adam(model.parameters(), lr=0.01),
                         discount=0.95,
                         exploration_policy=EpsilonGreedyPolicy(0.5, 0.01, 150),
                         n_step=8)

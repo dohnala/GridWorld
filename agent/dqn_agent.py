@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torch.optim as optim
 from torch.autograd import Variable
 
 from agent.agent import Agent, RunPhase
@@ -13,25 +12,23 @@ class DQNAgent(Agent):
     Deep-Q-Network agent.
     """
 
-    def __init__(self, env, model, learning_rate, discount, exploration_policy, n_step=1):
+    def __init__(self, env, model, optimizer, discount, exploration_policy, n_step=1):
         """
         Initialize the agent.
 
         :param env: environment
         :param model: model for selecting actions
-        :param learning_rate: learning rate
+        :param optimizer: optimizer
         :param discount: discount factor
         :param exploration_policy: exploration policy used during training
         .param n_step: how many steps to use to compute targets
         """
-        super(DQNAgent, self).__init__("DQN agent", env, model)
+        super(DQNAgent, self).__init__("DQN agent", env, model, optimizer)
 
-        self.learning_rate = learning_rate
         self.discount = discount
         self.train_policy = exploration_policy
         self.eval_policy = GreedyPolicy()
         self.n_step = n_step
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
 
         self.transitions = []
         self.last_loss = None
