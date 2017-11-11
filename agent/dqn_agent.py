@@ -81,14 +81,14 @@ class DQNAgent(Agent):
             targets[i] = target
 
         # Train the model using given targets
-        self.__train__(states, actions, targets)
+        self.__update__(states, actions, targets)
 
         # Clear transitions on the end of rollout
         self.transitions = []
 
-    def __train__(self, states, actions, targets):
+    def __update__(self, states, actions, targets):
         """
-        Train the model using given targets.
+        Update the model using given targets.
 
         :param states: states
         :param actions: actions
