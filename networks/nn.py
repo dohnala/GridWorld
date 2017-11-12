@@ -5,6 +5,9 @@ from networks import Network, NetworkModule
 
 
 class NN(Network):
+    """
+    Simple feed forward architecture composed of hidden layers.
+    """
     def __init__(self, hidden_units=None):
         self.hidden_units = hidden_units
 
@@ -13,6 +16,9 @@ class NN(Network):
 
 
 class NNModule(NetworkModule):
+    """
+    Simple neural network composed of hiddent layers.
+    """
     def __init__(self, input_shape, hidden_units=None):
         super(NNModule, self).__init__(input_shape)
 

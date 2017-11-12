@@ -1,5 +1,6 @@
 from enum import Enum
 
+import numpy as np
 import torch
 
 
@@ -176,7 +177,11 @@ class Agent:
         :param done: if next_state is terminal
         :return None
         """
-        pass
+        # Create a transition
+        transition = (self.__encode_state__(state), action, reward, self.__encode_state__(next_state), done)
+
+        # Update model using given transition and store loss
+        self.last_loss = self.model.update(*self.__split_transitions__([transition]))
 
     def __encode_state__(self, state):
         """
@@ -186,3 +191,21 @@ class Agent:
         :return: encoded state
         """
         return self.encoder.encode(state)
+
+    @staticmethod
+    def __split_transitions__(transitions):
+        """
+        Split given transitions into batches of states, actions, rewards, next_states and done.
+
+        :param transitions: transitions
+        :return: tuple (states, actions, rewards, next_states, done)
+        """
+        transitions = np.array(transitions)
+
+        states = np.vstack(transitions[:, 0])
+        actions = np.vstack(transitions[:, 1])
+        rewards = np.vstack(transitions[:, 2])
+        next_states = np.vstack(transitions[:, 3])
+        done = np.vstack(transitions[:, 4])
+
+        return states, actions, rewards, next_states, done

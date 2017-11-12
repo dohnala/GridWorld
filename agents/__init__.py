@@ -1,7 +1,8 @@
 from agents.agent import Agent
-from agents.dqn_agent import DQNAgent
+from agents.nstep_agent import NStepAgent
+from agents.nstep_dqn_agent import NStepDQNAgent
 
 __all__ = [
     'Agent',
-    'DQNAgent'
+    'NStepDQNAgent'
 ]

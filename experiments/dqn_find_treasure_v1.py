@@ -1,4 +1,4 @@
-from agents import DQNAgent
+from agents import NStepDQNAgent
 from encoders import OneHotEncoder
 from experiments import Experiment
 from networks import NN
@@ -15,13 +15,13 @@ class FindTreasureV1(Experiment):
         super(FindTreasureV1, self).__init__("find_treasure_v1")
 
     def create_agent(self, env):
-        return DQNAgent(env=env,
-                        encoder=OneHotEncoder(env.width, env.height, treasure_position=True),
-                        network=NN(hidden_units=[128]),
-                        optimizer=AdamOptimizer(0.002),
-                        discount=0.95,
-                        exploration_policy=EpsilonGreedyPolicy(1, 0.01, 2000),
-                        n_step=8)
+        return NStepDQNAgent(env=env,
+                             encoder=OneHotEncoder(env.width, env.height, treasure_position=True),
+                             network=NN(hidden_units=[128]),
+                             optimizer=AdamOptimizer(0.002),
+                             discount=0.95,
+                             exploration_policy=EpsilonGreedyPolicy(1, 0.01, 2000),
+                             n_step=8)
 
 
 if __name__ == "__main__":
