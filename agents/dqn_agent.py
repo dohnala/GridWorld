@@ -10,12 +10,12 @@ class DQNAgent(Agent):
     Deep-Q-Network agent.
     """
 
-    def __init__(self, env, encoder, optimizer, discount, exploration_policy, n_step=1, hidden_units=None):
+    def __init__(self, env, encoder, network, optimizer, discount, exploration_policy, n_step=1):
         # Create model
         model = QNstepModel(encoder.shape(),
                             env.num_actions,
                             discount,
-                            hidden_units)
+                            network)
 
         super(DQNAgent, self).__init__("DQN agent", env, encoder, model, optimizer, exploration_policy, GreedyPolicy())
 

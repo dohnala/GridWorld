@@ -12,30 +12,17 @@ class QNstepModel(Model):
     QModel using N-step algorithm to estimate targets.
     """
 
-    def __init__(self, input_shape, num_actions, discount, hidden_units=None):
-        super(QNstepModel, self).__init__(input_shape, num_actions)
+    def __init__(self, input_shape, num_actions, discount, network):
+        super(QNstepModel, self).__init__(input_shape, num_actions, network)
 
         self.discount = discount
-        self.hidden_units = hidden_units
 
-        input_size = self.input_shape
-
-        # Create hidden layers
-        layers = []
-        if self.hidden_units:
-            for h in self.hidden_units:
-                layers.append(nn.Linear(input_size, h))
-                input_size = h
-
-        self.hidden = nn.ModuleList(layers)
-        self.output = nn.Linear(input_size, self.num_actions)
+        self.output = nn.Linear(self.network.output_shape(), self.num_actions)
 
     def forward(self, states):
         result = Variable(torch.from_numpy(states))
 
-        for layer in self.hidden:
-            result = F.relu(layer(result))
-
+        result = self.network(result)
         result = self.output(result)
 
         return result

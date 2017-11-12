@@ -1,6 +1,7 @@
 from agents import DQNAgent
 from encoders import OneHotEncoder
 from experiments import Experiment
+from networks import NN
 from optimizers import AdamOptimizer
 from policies import EpsilonGreedyPolicy
 
@@ -16,6 +17,7 @@ class FindTreasureV0(Experiment):
     def create_agent(self, env):
         return DQNAgent(env=env,
                         encoder=OneHotEncoder(env.width, env.height),
+                        network=NN(),
                         optimizer=AdamOptimizer(0.01),
                         discount=0.95,
                         exploration_policy=EpsilonGreedyPolicy(0.5, 0.01, 150),

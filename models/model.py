@@ -6,11 +6,12 @@ class Model(nn.Module):
     Model used for action selection and learning from experience.
     """
 
-    def __init__(self, input_shape, num_actions):
+    def __init__(self, input_shape, num_actions, network):
         super(Model, self).__init__()
 
         self.input_shape = input_shape
         self.num_actions = num_actions
+        self.network = network.build(input_shape)
         self.optimizer = None
 
     def set_optimizer(self, optimizer):
