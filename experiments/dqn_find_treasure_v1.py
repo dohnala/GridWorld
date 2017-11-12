@@ -8,7 +8,7 @@ from policies import EpsilonGreedyPolicy
 
 class FindTreasureV1(Experiment):
     """
-    Experiment of DQN agent for find_treasure_v0 task.
+    Experiment of N-step DQN agent for find_treasure_v1 task.
     """
 
     def __init__(self):
