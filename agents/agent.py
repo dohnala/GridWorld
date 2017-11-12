@@ -29,11 +29,22 @@ class Agent:
     Agent interacting with an environment which can be trained or evaluated.
     """
 
-    def __init__(self, name, env, model, optimizer):
+    def __init__(self, name, env, encoder, model, optimizer, train_policy, eval_policy):
         self.name = name
         self.env = env
+        self.encoder = encoder
         self.model = model
         self.optimizer = optimizer
+        self.train_policy = train_policy
+        self.eval_policy = eval_policy
+
+        # Configure optimizer with model parameters
+        self.optimizer.set_parameters(self.model.parameters())
+
+        # Configure model with optimizer
+        self.model.set_optimizer(self.optimizer)
+
+        self.last_loss = None
 
     def train(self, num_episodes, result_writer):
         """
@@ -111,8 +122,11 @@ class Agent:
         result.reward = reward
         result.steps = steps
         result.has_won = has_won
+        result.loss = self.last_loss
 
-        self.__after_episode__(episode, phase, result)
+        if phase == RunPhase.TRAIN:
+            # Update policy after each training episode
+            self.train_policy.update()
 
         return result
 
@@ -128,7 +142,7 @@ class Agent:
         reward, next_state, done = self.env.step(action)
 
         if phase == RunPhase.TRAIN:
-            # Observer transition only in TRAIN phase
+            # Observe transition only in TRAIN phase
             self.__observe_transition__(state, action, reward, next_state, done)
 
         return reward
@@ -141,7 +155,15 @@ class Agent:
         :param phase: current phase
         :return: action to take
         """
-        pass
+        # Encode state and use model to predict action values
+        action_values = self.model(self.__encode_state__(state)).data.numpy()
+
+        # Select an action using policy
+        if phase == RunPhase.TRAIN:
+            return self.train_policy.select_action(action_values)
+
+        if phase == RunPhase.EVAL:
+            return self.eval_policy.select_action(action_values)
 
     def __observe_transition__(self, state, action, reward, next_state, done):
         """
@@ -156,13 +178,11 @@ class Agent:
         """
         pass
 
-    def __after_episode__(self, episode, phase, result):
+    def __encode_state__(self, state):
         """
-        Called after an episode is finished.
+        Encode given state by configured encoders.
 
-        :param episode: current episode
-        :param phase: current phase
-        :param result: episode result
-        :return: None
+        :param state: state
+        :return: encoded state
         """
-        pass
+        return self.encoder.encode(state)

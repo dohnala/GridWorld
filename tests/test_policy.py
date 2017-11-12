@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from agent.policy import GreedyPolicy, EpsilonGreedyPolicy, BoltzmannPolicy
+from policies import GreedyPolicy, EpsilonGreedyPolicy, BoltzmannPolicy
 
 
 class GreedyPolicyTest(unittest.TestCase):

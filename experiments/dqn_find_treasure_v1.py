@@ -1,10 +1,8 @@
-import torch.optim as optim
-
-from agent.dqn_agent import DQNAgent
-from agent.encoder import OneHotEncoder
-from agent.model import NNModel
-from agent.policy import EpsilonGreedyPolicy
-from experiments.experiment import Experiment
+from agents import DQNAgent
+from encoders import OneHotEncoder
+from experiments import Experiment
+from optimizers import AdamOptimizer
+from policies import EpsilonGreedyPolicy
 
 
 class FindTreasureV1(Experiment):
@@ -16,16 +14,13 @@ class FindTreasureV1(Experiment):
         super(FindTreasureV1, self).__init__("find_treasure_v1")
 
     def create_agent(self, env):
-        encoder = OneHotEncoder(env.width, env.height, treasure_position=True)
-        model = NNModel(encoder, env.num_actions, hidden_units=[128])
-
         return DQNAgent(env=env,
-                        model=model,
-                        optimizer=optim.Adam(model.parameters(), lr=0.002),
+                        encoder=OneHotEncoder(env.width, env.height, treasure_position=True),
+                        optimizer=AdamOptimizer(0.002),
                         discount=0.95,
                         exploration_policy=EpsilonGreedyPolicy(1, 0.01, 2000),
                         n_step=8,
-                        sync_target=100)
+                        hidden_units=[128])
 
 
 if __name__ == "__main__":
