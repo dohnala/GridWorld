@@ -1,8 +1,12 @@
-from agents.agent import Agent
-from agents.nstep_agent import NStepAgent
-from agents.nstep_dqn_agent import NStepDQNAgent
+from agents.agent import Agent, AgentConfig
+from agents.nstep_agent import NStepAgent, NStepAgentConfig
+from agents.nstep_dqn_agent import NStepDQNAgent, NStepDQNAgentConfig
 
 __all__ = [
     'Agent',
-    'NStepDQNAgent'
+    'AgentConfig',
+    'NStepAgent',
+    'NStepAgentConfig',
+    'NStepDQNAgent',
+    'NStepDQNAgentConfig'
 ]

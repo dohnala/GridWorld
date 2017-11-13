@@ -1,7 +1,9 @@
-from models.model import Model
-from models.q_model import QNstepModel
+from models.model import Model, ModelConfig
+from models.nstep_q_model import NstepQModel, NstepQModelConfig
 
 __all__ = [
     'Model',
-    'QNstepModel'
+    'ModelConfig',
+    'NstepQModel',
+    'NstepQModelConfig'
 ]

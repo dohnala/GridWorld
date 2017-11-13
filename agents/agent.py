@@ -25,19 +25,47 @@ class RunPhase(Enum):
     EVAL = 1
 
 
+class AgentConfig:
+    """
+    Agent's configuration.
+    """
+
+    def __init__(self, encoder, optimizer, train_policy, eval_policy):
+        """
+        Initialize configuration.
+
+        :param encoder: encoder used to encode states
+        :param optimizer: optimizer used to update model parameters
+        :param train_policy: policy used in training phase
+        :param eval_policy: policy used in evaluation phase
+        """
+        self.encoder = encoder
+        self.optimizer = optimizer
+        self.train_policy = train_policy
+        self.eval_policy = eval_policy
+
+
 class Agent:
     """
     Agent interacting with an environment which can be trained or evaluated.
     """
 
-    def __init__(self, name, env, encoder, model, optimizer, train_policy, eval_policy):
+    def __init__(self, name, env, model, config):
+        """
+        Initialize agent.
+
+        :param name: name of the agent
+        :param env: environment this agent interacts with
+        :param model: model used for action selection and learning
+        :param config: agent's configuration
+        """
         self.name = name
         self.env = env
-        self.encoder = encoder
         self.model = model
-        self.optimizer = optimizer
-        self.train_policy = train_policy
-        self.eval_policy = eval_policy
+        self.encoder = config.encoder
+        self.optimizer = config.optimizer
+        self.train_policy = config.train_policy
+        self.eval_policy = config.eval_policy
 
         # Configure optimizer with model parameters
         self.optimizer.set_parameters(self.model.parameters())

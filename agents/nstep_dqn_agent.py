@@ -1,25 +1,45 @@
-from agents import NStepAgent
-from models import QNstepModel
+from agents import NStepAgent, NStepAgentConfig
+from models import NstepQModel, NstepQModelConfig
 from policies import GreedyPolicy
+
+
+class NStepDQNAgentConfig(NStepAgentConfig, NstepQModelConfig):
+    """
+    N-step DQN agent's configuration.
+    """
+
+    def __init__(self, encoder, optimizer, policy, n_step, network, discount):
+        """
+        Initialize configuration.
+
+        :param encoder: encoder used to encode states
+        :param optimizer: optimizer used to update model parameters
+        :param policy: policy used in training phase
+        :param n_step: how many steps are stored before updating the model
+        :param discount: discount factor used by model
+        :param network: network used by model
+        """
+        NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step)
+        NstepQModelConfig.__init__(self, network, discount)
 
 
 class NStepDQNAgent(NStepAgent):
     """
-    N-step Deep-Q-Network agent.
+    N-step DQN agent.
     """
 
-    def __init__(self, env, encoder, network, optimizer, discount, exploration_policy, n_step=1):
-        # Create model
-        model = QNstepModel(encoder.shape(),
-                            env.num_actions,
-                            discount,
-                            network)
+    def __init__(self, env, config):
+        """
+        Initialize agent.
 
-        super(NStepDQNAgent, self).__init__("DQN agent",
-                                            env,
-                                            encoder,
-                                            model,
-                                            optimizer,
-                                            exploration_policy,
-                                            GreedyPolicy(),
-                                            n_step)
+        :param env: environment this agent interacts with
+        :param config: agent's configuration
+        """
+        super(NStepDQNAgent, self).__init__(
+            name="DQN agent",
+            env=env,
+            model=NstepQModel(
+                input_shape=config.encoder.shape(),
+                num_actions=env.num_actions,
+                config=config),
+            config=config)

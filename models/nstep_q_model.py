@@ -4,18 +4,42 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from models import Model
+from models import Model, ModelConfig
 
 
-class QNstepModel(Model):
+class NstepQModelConfig(ModelConfig):
     """
-    QModel using N-step algorithm to estimate targets.
+    N-step Q model's configuration.
     """
 
-    def __init__(self, input_shape, num_actions, discount, network):
-        super(QNstepModel, self).__init__(input_shape, num_actions, network)
+    def __init__(self, network, discount):
+        """
+        Initialize configuration.
+
+        :param network: network
+        :param discount: discount factor
+        """
+        super(NstepQModelConfig, self).__init__(network)
 
         self.discount = discount
+
+
+class NstepQModel(Model):
+    """
+    Q model using N-step algorithm to estimate targets.
+    """
+
+    def __init__(self, input_shape, num_actions, config):
+        """
+        Initialize agent.
+
+        :param input_shape: shape of input state
+        :param num_actions: number of actions
+        :param config: model's config
+        """
+        super(NstepQModel, self).__init__(input_shape, num_actions, config)
+
+        self.discount = config.discount
 
         self.output = nn.Linear(self.network.output_shape(), self.num_actions)
 

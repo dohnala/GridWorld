@@ -8,7 +8,7 @@ import numpy as np
 
 from env.env import GridWorldEnv
 
-logging.config.fileConfig("logging.conf")
+logging.config.fileConfig("../logging.conf")
 logger = logging.getLogger("root")
 
 
