@@ -1,38 +1,31 @@
-import torch.nn as nn
-
-
 class ModelConfig:
     """
     Model's configuration.
     """
 
-    def __init__(self, network):
+    def __init__(self, base_network):
         """
         Initialize configuration.
 
-        :param network: network
+        :param base_network: base network
         """
-        self.network = network
+        self.base_network = base_network
 
 
-class Model(nn.Module):
+class Model:
     """
     Model used for action selection and learning.
     """
 
-    def __init__(self, input_shape, num_actions, config):
+    def __init__(self, network, config):
         """
         Initialize model.
 
-        :param input_shape: shape of input state
-        :param num_actions: number of actions
+        :param network: main network used by model
         :param config: model's config
         """
-        super(Model, self).__init__()
-
-        self.input_shape = input_shape
-        self.num_actions = num_actions
-        self.network = config.network.build(input_shape)
+        self.network = network
+        self.config = config
         self.optimizer = None
 
     def set_optimizer(self, optimizer):
@@ -44,12 +37,12 @@ class Model(nn.Module):
         """
         self.optimizer = optimizer
 
-    def forward(self, states):
+    def predict(self, states):
         """
-        Compute forward pass of the model for given states and return result.
+        Predict values for given states
 
         :param states: states
-        :return: result
+        :return: values depending on concrete model
         """
         pass
 
@@ -62,6 +55,47 @@ class Model(nn.Module):
         :param rewards: reward obtained by taking actions
         :param next_states: states resulting by taking actions
         :param done: flags representing if next states are terminals
-        :return:
+        :return: None
         """
         pass
+
+    def parameters(self):
+        """
+        Return all trainable parameters of this model.
+
+        :return: all trainable parameters
+        """
+        return self.network.parameters()
+
+    def state_dict(self):
+        """
+        Return dictionary representing state of this model.
+
+        :return: dictionary representing state
+        """
+        return self.network.state_dict()
+
+    def load_state_dict(self, state_dict):
+        """
+        Load given state dictionary.
+
+        :param state_dict: state dictionary
+        :return: None
+        """
+        self.network.load_state_dict(state_dict)
+
+    def set_train_mode(self):
+        """
+        Set this model to train mode.
+
+        :return: None
+        """
+        self.network.train()
+
+    def set_eval_mode(self):
+        """
+        Set this model to eval mode.
+
+        :return: None
+        """
+        self.network.eval()

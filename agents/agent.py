@@ -83,7 +83,7 @@ class Agent:
             self.__set_phase__(phase)
 
         # Encode state and use model to predict action values
-        action_values = self.model(self.__encode_state__(state)).data.numpy()
+        action_values = self.model.predict(self.__encode_state__(state)).data.numpy()
 
         # Select an action using policy
         action = self.current_policy.select_action(action_values)
@@ -148,11 +148,11 @@ class Agent:
 
         # Change model and policy for current phase
         if self.current_phase == RunPhase.TRAIN:
-            self.model.train()
+            self.model.set_train_mode()
             self.current_policy = self.train_policy
 
         if self.current_phase == RunPhase.EVAL:
-            self.model.eval()
+            self.model.set_eval_mode()
             self.current_policy = self.eval_policy
 
     def __observe_transition__(self, transition):
