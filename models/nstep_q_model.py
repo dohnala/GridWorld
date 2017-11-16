@@ -52,7 +52,7 @@ class NstepQModel(Model):
             self.__sync_target()
 
     def forward(self, states):
-        result = Variable(torch.from_numpy(states))
+        result = Variable(torch.from_numpy(states), requires_grad=False)
 
         result = self.network(result)
         result = self.output(result)
@@ -68,7 +68,7 @@ class NstepQModel(Model):
             target_model = self.target if self.target_sync else self
 
             # Final value is maximum q value for last next state
-            final_value = target_model(next_states[-1]).detach().data.numpy().max()
+            final_value = target_model(next_states[-1]).data.numpy().max()
 
         # Compute targets as discounted cumulative rewards
         targets = self.__discounted_cumulative_rewards__(rewards, final_value)
@@ -77,13 +77,13 @@ class NstepQModel(Model):
         outputs = self.forward(states)
 
         # Turn actions into variable
-        actions = Variable(torch.from_numpy(actions))
+        actions = Variable(torch.from_numpy(actions), requires_grad=False)
 
         # Compute predictions of actions in given states
         predictions = outputs.gather(1, actions).squeeze()
 
         # Turn targets into variable
-        targets = Variable(torch.from_numpy(targets))
+        targets = Variable(torch.from_numpy(targets), requires_grad=False)
 
         # Compute Huber loss from predictions and targets
         loss = F.smooth_l1_loss(predictions, targets)
