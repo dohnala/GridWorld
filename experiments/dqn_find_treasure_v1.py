@@ -24,7 +24,8 @@ class FindTreasureV1(Experiment):
                 network=NN(hidden_units=[128]),
                 policy=EpsilonGreedyPolicy(1, 0.01, 2000),
                 discount=0.95,
-                n_step=8))
+                n_step=8,
+                target_sync=100))
 
         return Runner(env, agent)
 
