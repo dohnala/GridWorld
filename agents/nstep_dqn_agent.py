@@ -28,18 +28,17 @@ class NStepDQNAgent(NStepAgent):
     N-step DQN agent.
     """
 
-    def __init__(self, env, config):
+    def __init__(self, num_actions, config):
         """
         Initialize agent.
 
-        :param env: environment this agent interacts with
+        :param num_actions: number of actions
         :param config: agent's configuration
         """
         super(NStepDQNAgent, self).__init__(
             name="DQN agent",
-            env=env,
             model=NstepQModel(
                 input_shape=config.encoder.shape(),
-                num_actions=env.num_actions,
+                num_actions=num_actions,
                 config=config),
             config=config)

@@ -1,20 +1,10 @@
 from enum import Enum
+import collections
 
 import numpy as np
 import torch
 
-
-class EpisodeResult:
-    """
-    Result of one episode.
-    """
-
-    def __init__(self):
-        self.episode = None
-        self.reward = None
-        self.steps = None
-        self.has_won = None
-        self.loss = None
+Transition = collections.namedtuple('Transition', 'state action reward next_state done')
 
 
 class RunPhase(Enum):
@@ -50,17 +40,15 @@ class Agent:
     Agent interacting with an environment which can be trained or evaluated.
     """
 
-    def __init__(self, name, env, model, config):
+    def __init__(self, name, model, config):
         """
         Initialize agent.
 
         :param name: name of the agent
-        :param env: environment this agent interacts with
         :param model: model used for action selection and learning
         :param config: agent's configuration
         """
         self.name = name
-        self.env = env
         self.model = model
         self.encoder = config.encoder
         self.optimizer = config.optimizer
@@ -73,37 +61,58 @@ class Agent:
         # Configure model with optimizer
         self.model.set_optimizer(self.optimizer)
 
+        # Current phase the agent is in
+        self.current_phase = None
+
+        # Currently used exploration policy
+        self.current_policy = self.train_policy
+
+        # Loss after last model update
         self.last_loss = None
 
-    def train(self, num_episodes, result_writer):
+    def act(self, state, phase):
         """
-        Train agent for given number of episodes and write results.
+        Select an action to take for given state and phase.
 
-        :param num_episodes: number of episodes to train
-        :param result_writer: writer to write episode results into
-        :return: None
+        :param state: current state
+        :param phase: current phase
+        :return: action to take
         """
-        # Set model to train mode
-        self.model.train()
+        # Set phase
+        if self.current_phase != phase:
+            self.__set_phase__(phase)
 
-        for episode in range(num_episodes):
-            result = self.__episode__(episode, RunPhase.TRAIN)
-            result_writer.add_result(result)
+        # Encode state and use model to predict action values
+        action_values = self.model(self.__encode_state__(state)).data.numpy()
 
-    def eval(self, num_episodes, result_writer):
+        # Select an action using policy
+        action = self.current_policy.select_action(action_values)
+
+        return action
+
+    def observe(self, state, action, reward, next_state, done):
         """
-        Evaluate agent for given number of episodes and write results.
+        Observe current transition.
 
-        :param num_episodes: number of episodes to evaluate
-        :param result_writer: writer to write episode results into
-        :return: None
+        :param state: state in which action was taken
+        :param action: action taken
+        :param reward: reward obtained for given action
+        :param next_state: state action result in
+        :param done: if next_state is terminal
+        :return None
         """
-        # Set model to eval mode
-        self.model.eval()
+        transition = Transition(
+            state=self.__encode_state__(state),
+            action=action,
+            reward=reward,
+            next_state=self.__encode_state__(next_state),
+            done=done)
 
-        for episode in range(num_episodes):
-            result = self.__episode__(episode, RunPhase.EVAL)
-            result_writer.add_result(result)
+        self.__observe_transition__(transition)
+
+        # Update current policy
+        if done:
+            self.current_policy.update()
 
     def save(self, file):
         """
@@ -127,87 +136,32 @@ class Agent:
         self.model.load_state_dict(checkpoint['model'])
         self.optimizer.load_state_dict(checkpoint["optimizer"])
 
-    def __episode__(self, episode, phase):
+    def __set_phase__(self, phase):
         """
-        Play one episode and return result.
+        Change current phase.
 
-        :param episode: current episode
-        :param phase: current phase
-        :return: episode result
+        :param phase: new phase
+        :return: None
         """
-        self.env.reset()
+        # Set current phase
+        self.current_phase = phase
 
-        reward = 0
+        # Change model and policy for current phase
+        if self.current_phase == RunPhase.TRAIN:
+            self.model.train()
+            self.current_policy = self.train_policy
 
-        while not self.env.is_terminal():
-            reward += self.__step__(phase)
+        if self.current_phase == RunPhase.EVAL:
+            self.model.eval()
+            self.current_policy = self.eval_policy
 
-        steps = self.env.state.step
-        has_won = self.env.has_won()
-
-        # Create an episode result and fill it
-        result = EpisodeResult()
-        result.episode = episode
-        result.reward = reward
-        result.steps = steps
-        result.has_won = has_won
-        result.loss = self.last_loss
-
-        if phase == RunPhase.TRAIN:
-            # Update policy after each training episode
-            self.train_policy.update()
-
-        return result
-
-    def __step__(self, phase):
+    def __observe_transition__(self, transition):
         """
-        Take one step on the environment and return obtained reward.
+        Observe given transition.
 
-        :param phase: current phase
-        :return: reward
+        :param transition: transition
+        :return: None
         """
-        state = self.env.state
-        action = self.__select_action__(state, phase)
-        reward, next_state, done = self.env.step(action)
-
-        if phase == RunPhase.TRAIN:
-            # Observe transition only in TRAIN phase
-            self.__observe_transition__(state, action, reward, next_state, done)
-
-        return reward
-
-    def __select_action__(self, state, phase):
-        """
-        Select an action to take for given state.
-
-        :param state: current state
-        :param phase: current phase
-        :return: action to take
-        """
-        # Encode state and use model to predict action values
-        action_values = self.model(self.__encode_state__(state)).data.numpy()
-
-        # Select an action using policy
-        if phase == RunPhase.TRAIN:
-            return self.train_policy.select_action(action_values)
-
-        if phase == RunPhase.EVAL:
-            return self.eval_policy.select_action(action_values)
-
-    def __observe_transition__(self, state, action, reward, next_state, done):
-        """
-        Observer current transition.
-
-        :param state: state in which action was taken
-        :param action: action taken
-        :param reward: reward obtained for given action
-        :param next_state: state action result in
-        :param done: if next_state is terminal
-        :return None
-        """
-        # Create a transition
-        transition = (self.__encode_state__(state), action, reward, self.__encode_state__(next_state), done)
-
         # Update model using given transition and store loss
         self.last_loss = self.model.update(*self.__split_transitions__([transition]))
 
@@ -228,12 +182,4 @@ class Agent:
         :param transitions: transitions
         :return: tuple (states, actions, rewards, next_states, done)
         """
-        transitions = np.array(transitions)
-
-        states = np.vstack(transitions[:, 0])
-        actions = np.vstack(transitions[:, 1])
-        rewards = np.vstack(transitions[:, 2])
-        next_states = np.vstack(transitions[:, 3])
-        done = np.vstack(transitions[:, 4])
-
-        return states, actions, rewards, next_states, done
+        return map(np.vstack, zip(*transitions))

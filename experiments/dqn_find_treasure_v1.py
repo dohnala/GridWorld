@@ -1,5 +1,6 @@
 from agents import NStepDQNAgent, NStepDQNAgentConfig as Config
 from encoders import OneHotEncoder
+from execution import Runner
 from experiments import Experiment
 from networks import NN
 from optimizers import AdamOptimizer
@@ -14,9 +15,9 @@ class FindTreasureV1(Experiment):
     def __init__(self):
         super(FindTreasureV1, self).__init__("find_treasure_v1")
 
-    def create_agent(self, env):
-        return NStepDQNAgent(
-            env=env,
+    def create_runner(self, env):
+        agent = NStepDQNAgent(
+            num_actions=env.num_actions,
             config=Config(
                 encoder=OneHotEncoder(env.width, env.height, treasure_position=True),
                 optimizer=AdamOptimizer(0.002),
@@ -25,6 +26,10 @@ class FindTreasureV1(Experiment):
                 discount=0.95,
                 n_step=8))
 
+        return Runner(env, agent)
+
+    def termination_cond(self, result):
+        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.98
 
 if __name__ == "__main__":
     FindTreasureV1().run()

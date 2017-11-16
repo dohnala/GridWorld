@@ -26,30 +26,25 @@ class NStepAgent(Agent):
     N-step agent which stores N transitions before model update.
     """
 
-    def __init__(self, name, env, model, config):
+    def __init__(self, name, model, config):
         """
         Initialize agent.
 
         :param name: name of the agent
-        :param env: environment this agent interacts with
         :param model: model used for action selection and learning
         :param config: agent's configuration
         """
-        super(NStepAgent, self).__init__(name, env, model, config)
+        super(NStepAgent, self).__init__(name, model, config)
 
         self.n_step = config.n_step
         self.transitions = []
 
-    def __observe_transition__(self, state, action, reward, next_state, done):
+    def __observe_transition__(self, transition):
         # Store transition
-        self.transitions.append((self.__encode_state__(state),
-                                 action,
-                                 reward,
-                                 self.__encode_state__(next_state),
-                                 done))
+        self.transitions.append(transition)
 
         # Perform update when episode is finished or N transitions are gathered
-        if done or len(self.transitions) == self.n_step:
+        if transition.done or len(self.transitions) == self.n_step:
             # Update model using given transitions and store loss
             self.last_loss = self.model.update(*self.__split_transitions__(self.transitions))
 
