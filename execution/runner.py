@@ -93,7 +93,7 @@ class Runner:
         :param eval_after: number of episodes before evaluation
         :param log_after: number of episodes before logging
         :param termination_cond: function which takes an evaluation result and decides if training should terminate
-        :return: None
+        :return: evaluation result
         """
         current_episode = 0
 
@@ -117,6 +117,8 @@ class Runner:
             # If number of episodes exceed total number of training episodes, break training
             if current_episode >= train_episodes:
                 break
+
+        return eval_result
 
     def __train__(self, num_episodes, current_episode, total_episodes, log_after):
         """
