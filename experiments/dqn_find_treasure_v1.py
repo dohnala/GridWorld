@@ -32,5 +32,6 @@ class FindTreasureV1(Experiment):
     def termination_cond(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.98
 
+
 if __name__ == "__main__":
     FindTreasureV1().run()
