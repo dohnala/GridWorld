@@ -43,7 +43,7 @@ class Experiment:
         """
         args = self.parser.parse_args()
 
-        env = GridWorldEnv(self.task)
+        env = GridWorldEnv.for_task_name(self.task)
         runner = self.create_runner(env)
 
         if runner is None:

@@ -6,7 +6,7 @@ from env.state import Treasure
 
 class FindTreasureTaskTest(unittest.TestCase):
     def setUp(self):
-        self.env = GridWorldEnv("find_treasure_v0")
+        self.env = GridWorldEnv.for_task_name("find_treasure_v0")
         self.env.state.agent.x = 0
         self.env.state.agent.y = 0
 

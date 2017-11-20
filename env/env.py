@@ -8,16 +8,13 @@ class GridWorldEnv:
     tasks = {"find_treasure_v0": FindTreasureTask(width=9, height=9, episode_length=60, treasure_position=(6, 7)),
              "find_treasure_v1": FindTreasureTask(width=4, height=4, episode_length=40)}
 
-    def __init__(self, task_name):
+    def __init__(self, task):
         """
         Initialize grid world environment for given task.
 
-        :param task_name: name of the task
+        :param task: task
         """
-        if task_name not in self.tasks:
-            raise ValueError("Unknown task: " + task_name)
-
-        self.task = self.tasks[task_name]
+        self.task = task
         self.width = self.task.width
         self.height = self.task.height
         self.actions = list(range(len(self.task.get_actions())))
@@ -26,6 +23,19 @@ class GridWorldEnv:
         self.observers = []
 
         self.reset()
+
+    @staticmethod
+    def for_task_name(task_name):
+        """
+        Create grid world environment for given task name.
+
+        :param task_name: name of the task
+        :return: grid world environment
+        """
+        if task_name not in GridWorldEnv.tasks:
+            raise ValueError("Unknown task: " + task_name)
+
+        return GridWorldEnv(GridWorldEnv.tasks[task_name])
 
     def step(self, action_index):
         """
