@@ -96,26 +96,3 @@ class NStepDQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
                 discount=0.95,
                 n_step=8,
                 target_sync=10))
-
-
-class NStepDQNAgentForFindTreasureV1Test(AgentTestCases.AgentTestCase):
-    def train_cond(self, result):
-        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.98
-
-    def eval_cond(self, result):
-        return result.get_accuracy() >= 95 and result.get_mean_reward() >= 0.95
-
-    def create_env(self):
-        return GridWorldEnv.for_task_name("find_treasure_v1")
-
-    def create_agent(self, env):
-        return NStepDQNAgent(
-            num_actions=env.num_actions,
-            config=Config(
-                encoder=OneHotEncoder(env.width, env.height, treasure_position=True),
-                optimizer=AdamOptimizer(0.002),
-                network=NN(hidden_units=[128]),
-                policy=EpsilonGreedyPolicy(1, 0.01, 2000),
-                discount=0.95,
-                n_step=8,
-                target_sync=100))
