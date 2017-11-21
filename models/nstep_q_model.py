@@ -113,7 +113,8 @@ class NstepQModel(Model):
             target_network = self.target_network if self.target_sync else self.network
 
             # Final value is maximum q value for last next state
-            final_value = target_network(next_states[-1]).data.numpy().max()
+            last_state = np.expand_dims(next_states[-1], axis=0)
+            final_value = target_network(last_state).data.numpy().max()
 
         # Compute targets as discounted cumulative rewards
         targets = self.__discounted_cumulative_rewards__(rewards, final_value)

@@ -83,7 +83,8 @@ class Agent:
             self.__set_phase__(phase)
 
         # Encode state and use model to predict action values
-        action_values = self.model.predict(self.__encode_state__(state)).data.numpy()
+        states = np.expand_dims(self.__encode_state__(state), axis=0)
+        action_values = self.model.predict(states).data.numpy()[0]
 
         # Select an action using policy
         action = self.current_policy.select_action(action_values)
@@ -182,4 +183,12 @@ class Agent:
         :param transitions: transitions
         :return: tuple (states, actions, rewards, next_states, done)
         """
-        return map(np.vstack, zip(*transitions))
+        states, actions, rewards, next_states, done = zip(*transitions)
+
+        states = np.asarray(states)
+        actions = np.vstack(actions)
+        rewards = np.vstack(rewards)
+        next_states = np.asarray(next_states)
+        done = np.vstack(done)
+
+        return states, actions, rewards, next_states, done
