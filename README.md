@@ -13,7 +13,7 @@ python3 -m experiments.dqn_find_treasure_v0 --eval=100 --load=trained/dqn_find_t
 ## DQN agent for find_treasure_v1
 ### Train model
 ```
-python3 -m experiments.dqn_find_treasure_v1 --train=3000 --eval=100 --eval_after=500 --log_after=100
+python3 -m experiments.dqn_find_treasure_v1 --train=10000 --eval=100 --eval_after=500 --log_after=100
 ```
 ### User pre-trained model
 ```
