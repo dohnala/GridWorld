@@ -71,7 +71,6 @@ class Experiment:
 
         runner.run(args.train, args.eval, args.eval_after, args.log_after, self.termination_cond)
 
-        self.logger.info("")
         self.logger.info("Experiment finished after {:.2f}s".format(timer() - start))
         self.logger.info("")
 
