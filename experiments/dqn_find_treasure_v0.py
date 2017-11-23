@@ -15,8 +15,8 @@ class FindTreasureV0(Experiment):
     def __init__(self):
         super(FindTreasureV0, self).__init__("find_treasure_v0")
 
-    def create_runner(self, env):
-        agent = NStepDQNAgent(
+    def create_agent(self, env):
+        return NStepDQNAgent(
             num_actions=env.num_actions,
             config=Config(
                 encoder=OneHotEncoder(env.width, env.height),
@@ -27,7 +27,8 @@ class FindTreasureV0(Experiment):
                 n_step=8,
                 target_sync=10))
 
-        return Runner(env, agent)
+    def create_runner(self, env, agent_creator):
+        return Runner(env, agent_creator)
 
     def termination_cond(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.93

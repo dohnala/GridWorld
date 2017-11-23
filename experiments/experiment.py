@@ -18,11 +18,21 @@ class Experiment:
         self.parser = self.create_parser()
         self.logger = logging.getLogger("root")
 
-    def create_runner(self, env):
+    def create_agent(self, env):
+        """
+        Create agent.
+
+        :param env: environment
+        :return: agent
+        """
+        pass
+
+    def create_runner(self, env, agent_creator):
         """
         Create runner.
 
         :param env: environment
+        :param agent_creator: function to create agent
         :return: runner
         """
         pass
@@ -41,10 +51,25 @@ class Experiment:
         """
         Run an experiment.
         """
+
         args = self.parser.parse_args()
 
+        def agent_creator(_env):
+            agent = self.create_agent(_env)
+
+            # Loading the model
+            if args.load:
+                if os.path.isfile(args.load):
+                    agent.load(args.load)
+                    self.logger.info("Model loaded from {}".format(args.load))
+                else:
+                    self.logger.error("Model couldn't be loaded. File {} doesn't exist".format(args.load))
+                self.logger.info("")
+
+            return agent
+
         env = GridWorldEnv.for_task_name(self.task)
-        runner = self.create_runner(env)
+        runner = self.create_runner(env, agent_creator)
 
         if runner is None:
             raise ValueError("No runner specified")
@@ -52,24 +77,14 @@ class Experiment:
         # Info
         self.logger.info("")
         self.logger.info("Task: {}".format(self.task))
-        self.logger.info("Agent: {}".format(runner.agent.name))
         self.logger.info("")
-
-        # Loading the model
-        if args.load:
-            if os.path.isfile(args.load):
-                runner.agent.load(args.load)
-                self.logger.info("Model loaded from {}".format(args.load))
-            else:
-                self.logger.error("Model couldn't be loaded. File {} doesn't exist".format(args.load))
-            self.logger.info("")
 
         self.logger.info("Experiment started")
         self.logger.info("")
 
         start = timer()
 
-        runner.run(args.train, args.eval, args.eval_after, args.log_after, self.termination_cond)
+        runner.run(args.train, args.eval, args.eval_after, args.log_after, self.termination_cond, args.runs)
 
         self.logger.info("Experiment finished after {:.2f}s".format(timer() - start))
         self.logger.info("")
@@ -95,5 +110,6 @@ class Experiment:
         parser.add_argument('--save', type=str, help="file to save model to")
         parser.add_argument('--load', type=str, help="file to load model from")
         parser.add_argument('--log_after', type=int, default=10, help='log result after # of episodes')
+        parser.add_argument('--runs', type=int, default=1, help='# of runs to average results')
 
         return parser

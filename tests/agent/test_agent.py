@@ -59,9 +59,7 @@ class AgentTestCases:
             """
             env = self.create_env()
 
-            agent = self.create_agent(env)
-
-            runner = Runner(env, agent)
+            runner = Runner(env, self.create_agent)
 
             result = runner.run(
                 train_episodes=3000,
@@ -70,14 +68,18 @@ class AgentTestCases:
                 log_after=100,
                 termination_cond=self.train_cond)
 
-            agent.save("model.ckp")
+            runner.agent.save("model.ckp")
 
             self.assertTrue(self.eval_cond(result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
                 result.get_accuracy(), result.get_mean_reward()))
 
-            agent = self.create_agent(env)
+            def agent_creator(_env):
+                agent = self.create_agent(_env)
+                agent.load("model.ckp")
 
-            agent.load("model.ckp")
+                return agent
+
+            runner = Runner(env, agent_creator)
 
             result = runner.run(
                 train_episodes=0,

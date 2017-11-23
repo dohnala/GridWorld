@@ -15,19 +15,20 @@ class FindTreasureV1(Experiment):
     def __init__(self):
         super(FindTreasureV1, self).__init__("find_treasure_v1")
 
-    def create_runner(self, env):
-        agent = NStepDQNAgent(
+    def create_agent(self, env):
+        return NStepDQNAgent(
             num_actions=env.num_actions,
             config=Config(
                 encoder=LayerEncoder(env.width, env.height, treasure_position=True),
                 optimizer=AdamOptimizer(0.001),
                 network=CNN(hidden_units=[128]),
-                policy=EpsilonGreedyPolicy(1, 0.01, 1000),
+                policy=EpsilonGreedyPolicy(1, 0.01, 6000),
                 discount=0.95,
                 n_step=16,
                 target_sync=1000))
 
-        return Runner(env, agent)
+    def create_runner(self, env, agent_creator):
+        return Runner(env, agent_creator)
 
     def termination_cond(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90

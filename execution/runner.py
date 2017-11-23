@@ -71,23 +71,79 @@ class RunResult:
         self.eval_time = sum(result.time for result in eval_results)
 
 
+class AverageRunResult:
+    def __init__(self, run_results):
+        self.run_results = run_results
+        self.num_runs = len(run_results)
+        self.eval_episodes = run_results[0].eval_episodes
+        self.accuracy_per_run = [result.accuracy for result in run_results]
+        self.reward_per_run = [result.reward for result in run_results]
+        self.steps_per_run = [result.steps for result in run_results]
+        self.train_time_per_run = [result.train_time for result in run_results]
+
+    def get_accuracy(self):
+        return np.mean(self.accuracy_per_run)
+
+    def get_mean_reward(self):
+        return np.mean(self.reward_per_run)
+
+    def get_mean_steps(self):
+        return np.mean(self.steps_per_run)
+
+
 class Runner:
     """
     Runner provides an abstraction for executing agent on given environment.
     """
 
-    def __init__(self, env, agent):
+    def __init__(self, env, agent_creator):
         """
         Initialize runner.
 
         :param env: environment
-        :param agent: agent
+        :param agent_creator: function to create agent
         """
         self.env = env
-        self.agent = agent
+        self.agent_creator = agent_creator
+        self.agent = None
         self.logger = logging.getLogger("root")
 
-    def run(self, train_episodes, eval_episodes, eval_after, log_after, termination_cond=None):
+    def run(self, train_episodes, eval_episodes, eval_after, log_after, termination_cond=None, runs=1):
+        """
+        Run agent for given number of episodes on the environment several times.
+
+        :param train_episodes: number of training episodes
+        :param eval_episodes: number of evaluating episodes
+        :param eval_after: number of episodes before evaluation
+        :param log_after: number of episodes before logging
+        :param termination_cond: function which takes an evaluation result and decides if training should terminate
+        :param runs: number of runs to average results
+        :return:
+        """
+        run_results = []
+
+        for i in range(runs):
+            self.logger.info("-" * 100)
+            self.logger.info("")
+            self.logger.info("# Run {}/{}".format(i + 1, runs))
+            self.logger.info("")
+
+            # Run agent on the environment
+            result = self.__run__(train_episodes, eval_episodes, eval_after, log_after, termination_cond)
+
+            # Store run result
+            run_results.append(result)
+
+        # Create average run result
+        result = AverageRunResult(run_results)
+
+        # Log run result
+        self.__log_average_run_result__(result)
+        self.logger.info("")
+
+        return result
+
+    def __run__(self, train_episodes, eval_episodes, eval_after, log_after, termination_cond=None):
         """
         Run agent for given number of episodes on the environment.
 
@@ -98,6 +154,9 @@ class Runner:
         :param termination_cond: function which takes an evaluation result and decides if training should terminate
         :return: evaluation result
         """
+        # Create agent for the run
+        self.agent = self.agent_creator(self.env)
+
         train_results = []
         eval_results = []
 
@@ -268,3 +327,51 @@ class Runner:
             result.reward,
             result.steps,
             result.train_time))
+
+    def __log_average_run_result__(self, result):
+        self.logger.info("-" * 100)
+        self.logger.info("")
+
+        self.logger.info("# Run results")
+        self.logger.info("")
+
+        for i in range(result.num_runs):
+            run_result = result.run_results[i]
+
+            self.logger.info("Run {:2d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:7.2f}s".format(
+                i + 1,
+                run_result.accuracy,
+                run_result.reward,
+                run_result.steps,
+                run_result.train_time))
+
+        self.logger.info("")
+        self.logger.info("# Average statistics")
+        self.logger.info("")
+
+        self.logger.info("Runs       - {}".format(result.num_runs))
+        self.logger.info("Eval       - {} episodes".format(result.eval_episodes))
+
+        self.logger.info("Accuracy   - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+            np.mean(result.accuracy_per_run),
+            np.min(result.accuracy_per_run),
+            np.max(result.accuracy_per_run),
+            np.var(result.accuracy_per_run)))
+
+        self.logger.info("Reward     - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+            np.mean(result.reward_per_run),
+            np.min(result.reward_per_run),
+            np.max(result.reward_per_run),
+            np.var(result.reward_per_run)))
+
+        self.logger.info("Steps      - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+            np.mean(result.steps_per_run),
+            np.min(result.steps_per_run),
+            np.max(result.steps_per_run),
+            np.var(result.steps_per_run)))
+
+        self.logger.info("Train time - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+            np.mean(result.train_time_per_run),
+            np.min(result.train_time_per_run),
+            np.max(result.train_time_per_run),
+            np.var(result.train_time_per_run)))
