@@ -1,3 +1,5 @@
+import numpy as np
+
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -28,7 +30,13 @@ class NNModule(NetworkModule):
         layers = []
         if hidden_units:
             for h in hidden_units:
-                layers.append(nn.Linear(self.shape, h))
+                layer = nn.Linear(self.shape, h)
+
+                # Init parameters of hidden layer
+                self.__init__parameters__(layer)
+
+                layers.append(layer)
+
                 self.shape = h
 
         self.hidden = nn.ModuleList(layers)
@@ -43,3 +51,8 @@ class NNModule(NetworkModule):
 
     def output_shape(self):
         return self.shape
+
+    @staticmethod
+    def __init__parameters__(layer):
+        nn.init.xavier_uniform(layer.weight, gain=nn.init.calculate_gain('relu'))
+        nn.init.constant(layer.bias, 0)

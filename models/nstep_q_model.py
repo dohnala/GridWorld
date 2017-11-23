@@ -47,6 +47,9 @@ class QNetworkModule(NetworkModule):
         self.network = base_network.build(input_shape)
         self.output = nn.Linear(self.network.output_shape(), self.num_actions)
 
+        # Initialize output layer parameters
+        self.__init_parameters__(self.output)
+
     def forward(self, states):
         result = Variable(torch.from_numpy(states), requires_grad=False)
 
@@ -57,6 +60,14 @@ class QNetworkModule(NetworkModule):
 
     def output_shape(self):
         return self.num_actions
+
+    @staticmethod
+    def __init_parameters__(layer, std=1.0):
+        weights = torch.randn(layer.weight.data.size())
+        weights *= std / torch.sqrt(weights.pow(2).sum(1, keepdim=True))
+
+        layer.weight.data = weights
+        layer.bias.data.fill_(0)
 
 
 class NstepQModel(Model):

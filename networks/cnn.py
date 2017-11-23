@@ -28,6 +28,10 @@ class CNNModule(NetworkModule):
         width, height, num_layers = input_shape
 
         self.conv1 = nn.Conv2d(in_channels=num_layers, out_channels=16, kernel_size=3)
+
+        # Init parameters of conv layer
+        self.__init__parameters__(self.conv1)
+
         self.nn = NNModule(self.__conv_shape_flatten__(width, height, self.conv1), hidden_units)
 
     def forward(self, states):
@@ -39,6 +43,11 @@ class CNNModule(NetworkModule):
 
     def output_shape(self):
         return self.nn.output_shape()
+
+    @staticmethod
+    def __init__parameters__(layer):
+        nn.init.xavier_uniform(layer.weight, gain=nn.init.calculate_gain('relu'))
+        nn.init.constant(layer.bias, 0)
 
     @staticmethod
     def __conv_shape_flatten__(w_in, h_in, conv):
