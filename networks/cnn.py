@@ -35,7 +35,7 @@ class CNNModule(NetworkModule):
         self.nn = NNModule(self.__conv_shape_flatten__(width, height, self.conv1), hidden_units)
 
     def forward(self, states):
-        result = F.relu(self.conv1(states))
+        result = F.leaky_relu(self.conv1(states))
         result = result.view(result.size(0), -1)
         result = self.nn.forward(result)
 
@@ -46,7 +46,7 @@ class CNNModule(NetworkModule):
 
     @staticmethod
     def __init__parameters__(layer):
-        nn.init.xavier_uniform(layer.weight, gain=nn.init.calculate_gain('relu'))
+        nn.init.xavier_uniform(layer.weight, gain=nn.init.calculate_gain('leaky_relu'))
         nn.init.constant(layer.bias, 0)
 
     @staticmethod

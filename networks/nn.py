@@ -45,7 +45,7 @@ class NNModule(NetworkModule):
         result = states
 
         for layer in self.hidden:
-            result = F.relu(layer(result))
+            result = F.leaky_relu(layer(result))
 
         return result
 
@@ -54,5 +54,5 @@ class NNModule(NetworkModule):
 
     @staticmethod
     def __init__parameters__(layer):
-        nn.init.xavier_uniform(layer.weight, gain=nn.init.calculate_gain('relu'))
+        nn.init.xavier_uniform(layer.weight, gain=nn.init.calculate_gain('leaky_relu'))
         nn.init.constant(layer.bias, 0)
