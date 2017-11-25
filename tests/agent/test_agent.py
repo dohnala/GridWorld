@@ -2,6 +2,7 @@ import unittest
 
 import os
 
+from env.env import GridWorldEnv
 from execution import Runner
 
 
@@ -12,7 +13,7 @@ class AgentTestCases:
         """
 
         def tearDown(self):
-            os.remove("model.ckp")
+            os.remove("agent.ckp")
 
         def train_cond(self, result):
             """
@@ -32,19 +33,21 @@ class AgentTestCases:
             """
             return False
 
-        def create_env(self):
+        def create_task(self):
             """
-            Create environment.
+            Create task.
 
-            :return: environment
+            :return: task
             """
             pass
 
-        def create_agent(self, env):
+        def create_agent(self, width, height, num_actions):
             """
             Create agent.
 
-            :param env: environment
+            :param width: width
+            :param height: height
+            :param num_actions: num_actions
             :return: agent
             """
             pass
@@ -57,35 +60,41 @@ class AgentTestCases:
 
             :return: None
             """
-            env = self.create_env()
+            task = self.create_task()
 
-            runner = Runner(env, self.create_agent)
+            def env_creator():
+                return GridWorldEnv(task)
+
+            def agent_creator():
+                return self.create_agent(task.width, task.height, len(task.get_actions()))
+
+            def save(run, agent):
+                agent.save("agent.ckp")
+
+            runner = Runner(env_creator, agent_creator)
 
             result = runner.run(
                 train_episodes=3000,
                 eval_episodes=100,
                 eval_after=500,
-                log_after=100,
-                termination_cond=self.train_cond)
-
-            runner.agent.save("model.ckp")
+                termination_cond=self.train_cond,
+                after_run=save)
 
             self.assertTrue(self.eval_cond(result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
                 result.get_accuracy(), result.get_mean_reward()))
 
-            def agent_creator(_env):
-                agent = self.create_agent(_env)
-                agent.load("model.ckp")
+            def load_agent_creator():
+                agent = self.create_agent(task.width, task.height, len(task.get_actions()))
+                agent.load("agent.ckp")
 
                 return agent
 
-            runner = Runner(env, agent_creator)
+            runner = Runner(env_creator, load_agent_creator)
 
             result = runner.run(
                 train_episodes=0,
                 eval_episodes=100,
                 eval_after=0,
-                log_after=100,
                 termination_cond=self.eval_cond)
 
             self.assertTrue(self.eval_cond(result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(

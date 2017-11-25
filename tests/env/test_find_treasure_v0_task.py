@@ -2,11 +2,12 @@ import unittest
 
 from env.env import GridWorldEnv
 from env.state import Treasure
+from env.tasks import find_task
 
 
 class FindTreasureTaskTest(unittest.TestCase):
     def setUp(self):
-        self.env = GridWorldEnv.for_task_name("find_treasure_v0")
+        self.env = GridWorldEnv(find_task("find_treasure_v0"))
         self.env.state.agent.x = 0
         self.env.state.agent.y = 0
 

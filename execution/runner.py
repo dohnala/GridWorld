@@ -1,94 +1,10 @@
-from collections import deque
 from timeit import default_timer as timer
 import logging
 
 import numpy as np
 
 from agents.agent import RunPhase
-
-
-class TrainResult:
-    def __init__(self, rolling_mean_window):
-        self.num_episodes = 0
-        self.rewards_per_episode = deque(maxlen=rolling_mean_window)
-        self.steps_per_episode = deque(maxlen=rolling_mean_window)
-        self.wins = deque(maxlen=rolling_mean_window)
-        self.losses_per_episode = deque(maxlen=rolling_mean_window)
-        self.time = 0
-
-    def add_result(self, reward, steps, has_won, loss=None):
-        self.num_episodes += 1
-        self.rewards_per_episode.append(reward)
-        self.steps_per_episode.append(steps)
-        self.wins.append(1 if has_won else 0)
-        self.losses_per_episode.append(loss if loss else np.nan)
-
-    def get_accuracy(self):
-        return 100.0 * (sum(self.wins) / len(self.wins))
-
-    def get_mean_reward(self):
-        return np.mean(self.rewards_per_episode)
-
-    def get_mean_steps(self):
-        return np.mean(self.steps_per_episode)
-
-    def get_mean_loss(self):
-        return np.mean(self.losses_per_episode)
-
-
-class EvalResult:
-    def __init__(self):
-        self.num_episodes = 0
-        self.rewards_per_episode = deque()
-        self.steps_per_episode = deque()
-        self.wins = deque()
-        self.time = 0
-
-    def add_result(self, reward, steps, has_won):
-        self.num_episodes += 1
-        self.rewards_per_episode.append(reward)
-        self.steps_per_episode.append(steps)
-        self.wins.append(1 if has_won else 0)
-
-    def get_accuracy(self):
-        return 100.0 * (sum(self.wins) / len(self.wins))
-
-    def get_mean_reward(self):
-        return np.mean(self.rewards_per_episode)
-
-    def get_mean_steps(self):
-        return np.mean(self.steps_per_episode)
-
-
-class RunResult:
-    def __init__(self, train_results, eval_results):
-        self.train_episodes = sum(result.num_episodes for result in train_results)
-        self.eval_episodes = eval_results[-1].num_episodes
-        self.accuracy = eval_results[-1].get_accuracy()
-        self.reward = eval_results[-1].get_mean_reward()
-        self.steps = eval_results[-1].get_mean_steps()
-        self.train_time = sum(result.time for result in train_results)
-        self.eval_time = sum(result.time for result in eval_results)
-
-
-class AverageRunResult:
-    def __init__(self, run_results):
-        self.run_results = run_results
-        self.num_runs = len(run_results)
-        self.eval_episodes = run_results[0].eval_episodes
-        self.accuracy_per_run = [result.accuracy for result in run_results]
-        self.reward_per_run = [result.reward for result in run_results]
-        self.steps_per_run = [result.steps for result in run_results]
-        self.train_time_per_run = [result.train_time for result in run_results]
-
-    def get_accuracy(self):
-        return np.mean(self.accuracy_per_run)
-
-    def get_mean_reward(self):
-        return np.mean(self.reward_per_run)
-
-    def get_mean_steps(self):
-        return np.mean(self.steps_per_run)
+from execution.result import AverageRunResult, RunResult, TrainResult, EvalResult
 
 
 class Runner:
@@ -96,40 +12,37 @@ class Runner:
     Runner provides an abstraction for executing agent on given environment.
     """
 
-    def __init__(self, env, agent_creator):
+    def __init__(self, env_creator, agent_creator):
         """
         Initialize runner.
 
-        :param env: environment
+        :param env_creator: function to create environment
         :param agent_creator: function to create agent
         """
-        self.env = env
+        self.env_creator = env_creator
         self.agent_creator = agent_creator
-        self.agent = None
         self.logger = logging.getLogger("root")
 
-    def run(self, train_episodes, eval_episodes, eval_after, log_after, termination_cond=None, runs=1):
+    def run(self, train_episodes, eval_episodes, eval_after, runs=1, termination_cond=None, after_run=None):
         """
         Run agent for given number of episodes on the environment several times.
 
         :param train_episodes: number of training episodes
         :param eval_episodes: number of evaluating episodes
         :param eval_after: number of episodes before evaluation
-        :param log_after: number of episodes before logging
-        :param termination_cond: function which takes an evaluation result and decides if training should terminate
         :param runs: number of runs to average results
-        :return:
+        :param termination_cond: function which takes an evaluation result and decides if training should terminate
+        :param after_run: function called after run which takes an agent
+        :return: average result across runs
         """
         run_results = []
 
         for i in range(runs):
-            self.logger.info("-" * 100)
-            self.logger.info("")
             self.logger.info("# Run {}/{}".format(i + 1, runs))
             self.logger.info("")
 
             # Run agent on the environment
-            result = self.__run__(train_episodes, eval_episodes, eval_after, log_after, termination_cond)
+            result = self.__run__(i, train_episodes, eval_episodes, eval_after, termination_cond, after_run)
 
             # Store run result
             run_results.append(result)
@@ -139,23 +52,25 @@ class Runner:
 
         # Log run result
         self.__log_average_run_result__(result)
-        self.logger.info("")
 
         return result
 
-    def __run__(self, train_episodes, eval_episodes, eval_after, log_after, termination_cond=None):
+    def __run__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
         """
         Run agent for given number of episodes on the environment.
 
+        :param run: current run
         :param train_episodes: number of training episodes
         :param eval_episodes: number of evaluating episodes
         :param eval_after: number of episodes before evaluation
-        :param log_after: number of episodes before logging
         :param termination_cond: function which takes an evaluation result and decides if training should terminate
+        :param after_run: function called after run which takes an agent
         :return: evaluation result
         """
-        # Create agent for the run
-        self.agent = self.agent_creator(self.env)
+
+        # Create env and agent for the run
+        env = self.env_creator()
+        agent = self.agent_creator()
 
         train_results = []
         eval_results = []
@@ -167,7 +82,7 @@ class Runner:
             num_episodes = eval_after if remaining_episodes > eval_after else remaining_episodes
 
             # Run training phase
-            train_result = self.__train__(num_episodes, current_episode, train_episodes, log_after)
+            train_result = self.__train__(env, agent, num_episodes)
 
             # Store training result
             train_results.append(train_result)
@@ -176,13 +91,17 @@ class Runner:
             current_episode += num_episodes
 
             # Run evaluation phase
-            eval_result = self.__eval__(eval_episodes)
+            eval_result = self.__eval__(env, agent, eval_episodes)
+
+            # Log evaluation result
+            self.__log_eval_result__(current_episode, eval_result)
 
             # Store evaluation result
             eval_results.append(eval_result)
 
             # If termination condition is defined and evaluated as True, break loop
             if termination_cond and termination_cond(eval_result):
+                self.logger.info("")
                 self.logger.info("Termination condition passed")
                 self.logger.info("")
                 break
@@ -196,23 +115,26 @@ class Runner:
 
         # Log run result
         self.__log_run_result__(result)
-        self.logger.info("")
+        self.logger.info("-" * 150)
+
+        # Call after run callback
+        if after_run:
+            after_run(run, agent)
 
         return result
 
-    def __train__(self, num_episodes, current_episode, total_episodes, log_after):
+    def __train__(self, env, agent, num_episodes):
         """
         Run a training phase.
 
+        :param env: environment
+        :param agent: agent
         :param num_episodes: number of episodes to train in this phase
-        :param current_episode: episode before training phase
-        :param total_episodes: total number of training episodes
-        :param log_after: number of episodes before logging
         :return: result
         """
         start = timer()
 
-        result = TrainResult(log_after)
+        result = TrainResult(num_episodes)
 
         if num_episodes == 0:
             return result
@@ -221,17 +143,17 @@ class Runner:
             episode_reward = 0
 
             # Reset an environment before episode
-            state = self.env.reset()
+            state = env.reset()
 
-            while not self.env.is_terminal():
+            while not env.is_terminal():
                 # Get agent's action
-                action = self.agent.act(state, RunPhase.TRAIN)
+                action = agent.act(state, RunPhase.TRAIN)
 
                 # Execute given action in environment
-                reward, next_state, done = self.env.step(action)
+                reward, next_state, done = env.step(action)
 
                 # Pass observed transition to the agent
-                self.agent.observe(state, action, reward, next_state, done)
+                agent.observe(state, action, reward, next_state, done)
 
                 episode_reward += reward
 
@@ -241,24 +163,20 @@ class Runner:
             # Add episode result
             result.add_result(
                 reward=episode_reward,
-                steps=self.env.state.step,
-                has_won=self.env.has_won(),
-                loss=self.agent.last_loss)
-
-            # Log result
-            if result.num_episodes == num_episodes or result.num_episodes % log_after == 0:
-                self.__log_train_result__(result, current_episode, total_episodes)
+                steps=env.state.step,
+                has_won=env.has_won(),
+                loss=agent.last_loss)
 
         result.time = timer() - start
 
-        self.logger.info("")
-
         return result
 
-    def __eval__(self, num_episodes):
+    def __eval__(self, env, agent, num_episodes):
         """
         Run an evaluation phase.
 
+        :param env: environment
+        :param agent: agent
         :param num_episodes: number of evaluation episodes
         :return: result
         """
@@ -273,14 +191,14 @@ class Runner:
             episode_reward = 0
 
             # Reset an environment before episode
-            state = self.env.reset()
+            state = env.reset()
 
-            while not self.env.is_terminal():
+            while not env.is_terminal():
                 # Get agent's action
-                action = self.agent.act(state, RunPhase.EVAL)
+                action = agent.act(state, RunPhase.EVAL)
 
                 # Execute given action in environment
-                reward, next_state, done = self.env.step(action)
+                reward, next_state, done = env.step(action)
 
                 episode_reward += reward
 
@@ -290,14 +208,10 @@ class Runner:
             # Add episode result
             result.add_result(
                 reward=episode_reward,
-                steps=self.env.state.step,
-                has_won=self.env.has_won())
+                steps=env.state.step,
+                has_won=env.has_won())
 
         result.time = timer() - start
-
-        # Log result
-        self.__log_eval_result__(result)
-        self.logger.info("")
 
         return result
 
@@ -310,35 +224,28 @@ class Runner:
             result.get_mean_reward(),
             result.get_mean_steps()))
 
-    def __log_eval_result__(self, result):
-        self.logger.info("Evaluation {:4d}/{} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
-            result.num_episodes,
-            result.num_episodes,
+    def __log_eval_result__(self, current_episode, result):
+        self.logger.info("Evaluation at {:4d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
+            current_episode,
             result.get_accuracy(),
             result.get_mean_reward(),
             result.get_mean_steps()))
 
     def __log_run_result__(self, result):
-        self.logger.info("Run result - train_episodes:{:6d}, eval_episodes:{:4d}, accuracy:{:7.2f}%, reward:{:6.2f}, "
-                         "steps:{:6.2f}, train_time:{:7.2f}s".format(
-            result.train_episodes,
-            result.eval_episodes,
+        self.logger.info("Result - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:5.2f}s".format(
             result.accuracy,
             result.reward,
             result.steps,
             result.train_time))
 
     def __log_average_run_result__(self, result):
-        self.logger.info("-" * 100)
-        self.logger.info("")
-
         self.logger.info("# Run results")
         self.logger.info("")
 
         for i in range(result.num_runs):
             run_result = result.run_results[i]
 
-            self.logger.info("Run {:2d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:7.2f}s".format(
+            self.logger.info("Run {:2d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:5.2f}s".format(
                 i + 1,
                 run_result.accuracy,
                 run_result.reward,
@@ -375,3 +282,5 @@ class Runner:
             np.min(result.train_time_per_run),
             np.max(result.train_time_per_run),
             np.var(result.train_time_per_run)))
+
+        self.logger.info("")

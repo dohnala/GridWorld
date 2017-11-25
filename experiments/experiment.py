@@ -1,9 +1,9 @@
 import argparse
 import logging.config
 import os
-from timeit import default_timer as timer
 
 from env.env import GridWorldEnv
+from env.tasks import find_task
 
 logging.config.fileConfig("logging.conf")
 
@@ -13,25 +13,28 @@ class Experiment:
     Experiment in which agent tries to complete given task in environment.
     """
 
-    def __init__(self, task):
-        self.task = task
+    def __init__(self, task_name):
+        self.task_name = task_name
+        self.task = find_task(task_name)
         self.parser = self.create_parser()
         self.logger = logging.getLogger("root")
 
-    def create_agent(self, env):
+    def create_agent(self, width, height, num_action):
         """
         Create agent.
 
-        :param env: environment
+        :param width: width
+        :param height: height
+        :param num_action: number of actions
         :return: agent
         """
         pass
 
-    def create_runner(self, env, agent_creator):
+    def create_runner(self, env_creator, agent_creator):
         """
         Create runner.
 
-        :param env: environment
+        :param env_creator: function to create environment
         :param agent_creator: function to create agent
         :return: runner
         """
@@ -53,47 +56,41 @@ class Experiment:
         """
 
         args = self.parser.parse_args()
+        task = self.task
 
-        def agent_creator(_env):
-            agent = self.create_agent(_env)
+        def env_creator():
+            return GridWorldEnv(task)
 
-            # Loading the model
+        def agent_creator():
+            agent = self.create_agent(task.width, task.height, len(task.get_actions()))
+
+            # Loading the agent state
             if args.load:
                 if os.path.isfile(args.load):
                     agent.load(args.load)
-                    self.logger.info("Model loaded from {}".format(args.load))
+                    self.logger.info("Agent loaded from {}".format(args.load))
                 else:
-                    self.logger.error("Model couldn't be loaded. File {} doesn't exist".format(args.load))
+                    self.logger.error("Agent couldn't be loaded. File {} doesn't exist".format(args.load))
                 self.logger.info("")
 
             return agent
 
-        env = GridWorldEnv.for_task_name(self.task)
-        runner = self.create_runner(env, agent_creator)
+        def save(run, agent):
+            # Saving the agent state
+            if args.save:
+                agent.save(args.save + "_" + run)
+                self.logger.info("Agent saved to {}".format(args.save))
+                self.logger.info("")
+
+        runner = self.create_runner(env_creator, agent_creator)
 
         if runner is None:
             raise ValueError("No runner specified")
 
-        # Info
-        self.logger.info("")
-        self.logger.info("Task: {}".format(self.task))
         self.logger.info("")
 
-        self.logger.info("Experiment started")
-        self.logger.info("")
-
-        start = timer()
-
-        runner.run(args.train, args.eval, args.eval_after, args.log_after, self.termination_cond, args.runs)
-
-        self.logger.info("Experiment finished after {:.2f}s".format(timer() - start))
-        self.logger.info("")
-
-        # Saving the model
-        if args.save:
-            runner.agent.save(args.save)
-            self.logger.info("Model saved to {}".format(args.save))
-            self.logger.info("")
+        # Run experiment
+        runner.run(args.train, args.eval, args.eval_after, args.runs, self.termination_cond, save)
 
     @staticmethod
     def create_parser():
@@ -109,7 +106,6 @@ class Experiment:
         parser.add_argument('--eval_after', type=int, default=100, help='evaluate after # of episodes')
         parser.add_argument('--save', type=str, help="file to save model to")
         parser.add_argument('--load', type=str, help="file to load model from")
-        parser.add_argument('--log_after', type=int, default=10, help='log result after # of episodes')
         parser.add_argument('--runs', type=int, default=1, help='# of runs to average results')
 
         return parser
