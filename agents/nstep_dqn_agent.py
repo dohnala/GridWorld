@@ -20,7 +20,7 @@ class NStepDQNAgentConfig(NStepAgentConfig, NstepQModelConfig):
         :param network: network used by model
         :param target_sync: after how many steps target network should be synced
         """
-        NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step)
+        NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step, keep_last=True)
         NstepQModelConfig.__init__(self, network, discount)
 
         self.target_sync = target_sync

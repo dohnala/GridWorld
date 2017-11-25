@@ -1,25 +1,24 @@
 TRAIN
 
-2017-11-23 16:16:36 INFO     Run  1 - accuracy: 100.00%, reward:  0.95, steps:  6.27, train_time: 206.79s
-2017-11-23 16:16:36 INFO     Run  2 - accuracy: 100.00%, reward:  0.95, steps:  5.83, train_time: 115.46s
-2017-11-23 16:16:36 INFO     Run  3 - accuracy: 100.00%, reward:  0.95, steps:  6.45, train_time: 116.81s
-2017-11-23 16:16:36 INFO     Run  4 - accuracy: 100.00%, reward:  0.95, steps:  5.82, train_time: 111.94s
-2017-11-23 16:16:36 INFO     Run  5 - accuracy: 100.00%, reward:  0.95, steps:  6.12, train_time: 118.63s
-2017-11-23 16:16:36 INFO     Run  6 - accuracy: 100.00%, reward:  0.94, steps:  6.73, train_time: 115.11s
-2017-11-23 16:16:36 INFO     Run  7 - accuracy: 100.00%, reward:  0.95, steps:  6.26, train_time:  99.08s
-2017-11-23 16:16:36 INFO     Run  8 - accuracy: 100.00%, reward:  0.94, steps:  6.77, train_time:  90.68s
-2017-11-23 16:16:36 INFO     Run  9 - accuracy: 100.00%, reward:  0.95, steps:  6.06, train_time: 108.56s
-2017-11-23 16:16:36 INFO     Run 10 - accuracy: 100.00%, reward:  0.95, steps:  5.92, train_time: 163.24s
-2017-11-23 16:16:36 INFO
-2017-11-23 16:16:36 INFO     # Average statistics
-2017-11-23 16:16:36 INFO
-2017-11-23 16:16:36 INFO     Runs       - 10
-2017-11-23 16:16:36 INFO     Eval       - 100 episodes
-2017-11-23 16:16:36 INFO     Accuracy   - mean: 100.00, min: 100.00, max: 100.00, var:   0.00
-2017-11-23 16:16:36 INFO     Reward     - mean:   0.95, min:   0.94, max:   0.95, var:   0.00
-2017-11-23 16:16:36 INFO     Steps      - mean:   6.22, min:   5.82, max:   6.77, var:   0.11
-2017-11-23 16:16:36 INFO     Train time - mean: 124.63, min:  90.68, max: 206.79, var:1073.64
-
+2017-11-25 18:19:08 INFO     Run  1 - accuracy: 100.00%, reward:  0.95, steps:  5.81, train_time:114.64s
+2017-11-25 18:19:08 INFO     Run  2 - accuracy: 100.00%, reward:  0.95, steps:  6.29, train_time:78.37s
+2017-11-25 18:19:08 INFO     Run  3 - accuracy: 100.00%, reward:  0.95, steps:  5.66, train_time:89.69s
+2017-11-25 18:19:08 INFO     Run  4 - accuracy: 100.00%, reward:  0.95, steps:  6.42, train_time:88.83s
+2017-11-25 18:19:08 INFO     Run  5 - accuracy: 100.00%, reward:  0.95, steps:  6.09, train_time:92.88s
+2017-11-25 18:19:08 INFO     Run  6 - accuracy: 100.00%, reward:  0.95, steps:  5.88, train_time:83.01s
+2017-11-25 18:19:08 INFO     Run  7 - accuracy: 100.00%, reward:  0.94, steps:  6.94, train_time:93.40s
+2017-11-25 18:19:08 INFO     Run  8 - accuracy: 100.00%, reward:  0.95, steps:  6.16, train_time:78.20s
+2017-11-25 18:19:08 INFO     Run  9 - accuracy: 100.00%, reward:  0.95, steps:  6.13, train_time:76.03s
+2017-11-25 18:19:08 INFO     Run 10 - accuracy: 100.00%, reward:  0.95, steps:  6.47, train_time:109.45s
+2017-11-25 18:19:08 INFO
+2017-11-25 18:19:08 INFO     # Average statistics
+2017-11-25 18:19:08 INFO
+2017-11-25 18:19:08 INFO     Runs       - 10
+2017-11-25 18:19:08 INFO     Eval       - 100 episodes
+2017-11-25 18:19:08 INFO     Accuracy   - mean: 100.00, min: 100.00, max: 100.00, var:   0.00
+2017-11-25 18:19:08 INFO     Reward     - mean:   0.95, min:   0.94, max:   0.95, var:   0.00
+2017-11-25 18:19:08 INFO     Steps      - mean:   6.19, min:   5.66, max:   6.94, var:   0.12
+2017-11-25 18:19:08 INFO     Train time - mean:  90.45, min:  76.03, max: 114.64, var: 152.31
 
 EVAL
 
