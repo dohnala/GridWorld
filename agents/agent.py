@@ -161,8 +161,17 @@ class Agent:
         :param transition: transition
         :return: None
         """
-        # Update model using given transition and store loss
-        self.last_loss = self.model.update(*self.__split_transitions__([transition]))
+        # Update model using given transition
+        self.__update_model__([transition])
+
+    def __update_model__(self, transitions):
+        """
+        Update model using given transitions.
+
+        :param transitions: transitions
+        :return: None
+        """
+        self.last_loss = self.model.update(*self.__split_transitions__(transitions))
 
     def __encode_state__(self, state):
         """

@@ -44,8 +44,8 @@ class NStepAgent(Agent):
 
         # Perform update when episode is finished or N transitions are gathered
         if transition.done or len(self.transitions) == self.n_step:
-            # Update model using given transitions and store loss
-            self.last_loss = self.model.update(*self.__split_transitions__(self.transitions))
+            # Update model using given transitions
+            self.__update_model__(self.transitions)
 
             if not transition.done and self.keep_last:
                 # Keep last transition after an update
