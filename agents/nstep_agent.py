@@ -28,18 +28,14 @@ class NStepAgent(Agent):
     N-step agent which stores N transitions before model update.
     """
 
-    def __init__(self, name, model, config):
+    def __init__(self, **kwargs):
         """
         Initialize agent.
-
-        :param name: name of the agent
-        :param model: model used for action selection and learning
-        :param config: agent's configuration
         """
-        super(NStepAgent, self).__init__(name, model, config)
+        super(NStepAgent, self).__init__(**kwargs)
 
-        self.n_step = config.n_step
-        self.keep_last = config.keep_last
+        self.n_step = self.config.n_step
+        self.keep_last = self.config.keep_last
         self.transitions = []
 
     def __observe_transition__(self, transition):

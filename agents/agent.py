@@ -50,6 +50,7 @@ class Agent:
         """
         self.name = name
         self.model = model
+        self.config = config
         self.encoder = config.encoder
         self.optimizer = config.optimizer
         self.train_policy = config.train_policy
