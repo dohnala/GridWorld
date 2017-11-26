@@ -93,6 +93,10 @@ class SharedAdamOptimizer(Optimizer):
         # Update all variables with computed gradients
         self.optimizer.step()
 
+    def share_memory(self):
+        if self.optimizer:
+            self.optimizer.share_memory()
+
     def state_dict(self):
         return self.optimizer.state_dict() if self.optimizer else {}
 

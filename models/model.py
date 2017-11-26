@@ -67,6 +67,14 @@ class Model:
         """
         return self.network.parameters()
 
+    def share_memory(self):
+        """
+        Move model parameters to share memory.
+
+        :return: None
+        """
+        self.network.share_memory()
+
     def state_dict(self):
         """
         Return dictionary representing state of this model.
