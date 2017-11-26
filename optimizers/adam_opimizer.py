@@ -14,19 +14,18 @@ class AdamOptimizer(Optimizer):
         self.learning_rate = learning_rate
         self.optimizer = None
 
-    def set_parameters(self, parameters):
-        self.optimizer = optim.Adam(parameters, lr=self.learning_rate)
+    def step(self, loss, parameters):
+        if self.optimizer is None:
+            self.optimizer = optim.Adam(parameters, lr=self.learning_rate)
 
-    def step(self, loss):
-        if self.optimizer:
-            # Zero all gradients
-            self.optimizer.zero_grad()
+        # Zero all gradients
+        self.optimizer.zero_grad()
 
-            # Compute all gradients w.r.t given loss
-            loss.backward()
+        # Compute all gradients w.r.t given loss
+        loss.backward()
 
-            # Update all variables with computed gradients
-            self.optimizer.step()
+        # Update all variables with computed gradients
+        self.optimizer.step()
 
     def state_dict(self):
         return self.optimizer.state_dict() if self.optimizer else {}

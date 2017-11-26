@@ -3,20 +3,12 @@ class Optimizer:
     Optimizer which tries to update model parameters w.r.t some loss.
     """
 
-    def set_parameters(self, parameters):
-        """
-        Set model parameters which should be updated.
-
-        :param parameters: model parameters
-        :return: None
-        """
-        pass
-
-    def step(self, loss):
+    def step(self, loss, parameters):
         """
         Perform optimization step by updating model parameters w.r.t given loss.
 
         :param loss: loss
+        :param parameters: model parameters which should be updated
         :return: None
         """
         pass

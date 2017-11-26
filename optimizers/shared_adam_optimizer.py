@@ -73,21 +73,25 @@ class SharedAdamOptimizer(Optimizer):
         super(SharedAdamOptimizer, self).__init__()
 
         self.learning_rate = learning_rate
+        self.shared_parameters = None
         self.optimizer = None
 
-    def set_parameters(self, parameters):
-        self.optimizer = optim.Adam(parameters, lr=self.learning_rate)
+    def set_shared_parameters(self, parameters):
+        self.shared_parameters = parameters
+        self.optimizer = SharedAdam(parameters, lr=self.learning_rate)
 
-    def step(self, loss):
-        if self.optimizer:
-            # Zero all gradients
-            self.optimizer.zero_grad()
+    def step(self, loss, parameters):
+        # Zero all gradients
+        self.optimizer.zero_grad()
 
-            # Compute all gradients w.r.t given loss
-            loss.backward()
+        # Compute all gradients w.r.t given loss
+        loss.backward()
 
-            # Update all variables with computed gradients
-            self.optimizer.step()
+        # Ensure that given parameters share grads with share parameters
+        self.__ensure_shared_grads__(parameters)
+
+        # Update all variables with computed gradients
+        self.optimizer.step()
 
     def state_dict(self):
         return self.optimizer.state_dict() if self.optimizer else {}
@@ -95,3 +99,9 @@ class SharedAdamOptimizer(Optimizer):
     def load_state_dict(self, state_dict):
         if self.optimizer:
             self.optimizer.load_state_dict(state_dict)
+
+    def __ensure_shared_grads__(self, parameters):
+        for param, shared_param in zip(parameters, self.shared_parameters):
+            if shared_param.grad is not None:
+                return
+            shared_param._grad = param.grad

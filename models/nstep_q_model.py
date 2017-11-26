@@ -146,7 +146,7 @@ class NstepQModel(Model):
         loss = F.smooth_l1_loss(predictions, targets)
 
         # Perform optimization step to update parameter w.r.t given loss
-        self.optimizer.step(loss)
+        self.optimizer.step(loss, self.parameters())
 
         # Update steps
         self.steps += 1

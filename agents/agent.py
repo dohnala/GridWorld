@@ -56,9 +56,6 @@ class Agent:
         self.train_policy = config.train_policy
         self.eval_policy = config.eval_policy
 
-        # Configure optimizer with model parameters
-        self.optimizer.set_parameters(self.model.parameters())
-
         # Configure model with optimizer
         self.model.set_optimizer(self.optimizer)
 
