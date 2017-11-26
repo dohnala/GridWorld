@@ -16,8 +16,8 @@ class NStepDQNAgentConfig(NStepAgentConfig, NstepQModelConfig):
         :param optimizer: optimizer used to update model parameters
         :param policy: policy used in training phase
         :param n_step: how many steps are stored before updating the model
-        :param discount: discount factor used by model
         :param network: network used by model
+        :param discount: discount factor used by model
         :param target_sync: after how many steps target network should be synced
         """
         NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step, keep_last=True)
