@@ -1,9 +1,8 @@
+import os
 import unittest
 
-import os
-
 from env.env import GridWorldEnv
-from execution import Runner
+from execution import SyncRunner
 
 
 class AgentTestCases:
@@ -71,7 +70,7 @@ class AgentTestCases:
             def save(run, agent):
                 agent.save("agent.ckp")
 
-            runner = Runner(env_creator, agent_creator)
+            runner = SyncRunner(env_creator, agent_creator)
 
             result = runner.run(
                 train_episodes=3000,
@@ -89,7 +88,7 @@ class AgentTestCases:
 
                 return agent
 
-            runner = Runner(env_creator, load_agent_creator)
+            runner = SyncRunner(env_creator, load_agent_creator)
 
             result = runner.run(
                 train_episodes=0,

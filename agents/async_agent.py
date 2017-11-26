@@ -45,15 +45,17 @@ class WorkerAgent(Agent):
     Worker agent which asynchronously updates a shared model.
     """
 
-    def __init__(self, shared_model, **kwargs):
+    def __init__(self, worker_id, shared_model, **kwargs):
         """
         Initialize worker.
 
+        :param worker_id: worker id
         :param shared_model: shared model
         :param kwargs: kwargs
         """
         super(WorkerAgent, self).__init__(**kwargs)
 
+        self.worker_id = worker_id
         self.shared_model = shared_model
 
     def __update_model__(self, transitions):

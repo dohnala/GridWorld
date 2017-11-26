@@ -2,6 +2,14 @@ import numpy as np
 from collections import deque
 
 
+class TrainEpisodeResult:
+    def __init__(self, reward, steps, has_won, loss):
+        self.reward = reward
+        self.steps = steps
+        self.has_won = has_won
+        self.loss = loss
+
+
 class TrainResult:
     def __init__(self, rolling_mean_window):
         self.num_episodes = 0
@@ -11,12 +19,12 @@ class TrainResult:
         self.losses_per_episode = deque(maxlen=rolling_mean_window)
         self.time = 0
 
-    def add_result(self, reward, steps, has_won, loss=None):
+    def add_result(self, train_episode_result):
         self.num_episodes += 1
-        self.rewards_per_episode.append(reward)
-        self.steps_per_episode.append(steps)
-        self.wins.append(1 if has_won else 0)
-        self.losses_per_episode.append(loss if loss else np.nan)
+        self.rewards_per_episode.append(train_episode_result.reward)
+        self.steps_per_episode.append(train_episode_result.steps)
+        self.wins.append(1 if train_episode_result.has_won else 0)
+        self.losses_per_episode.append(train_episode_result.loss)
 
     def get_accuracy(self):
         return 100.0 * (sum(self.wins) / len(self.wins))
@@ -31,6 +39,13 @@ class TrainResult:
         return np.mean(self.losses_per_episode)
 
 
+class EvalEpisodeResult:
+    def __init__(self, reward, steps, has_won):
+        self.reward = reward
+        self.steps = steps
+        self.has_won = has_won
+
+
 class EvalResult:
     def __init__(self):
         self.num_episodes = 0
@@ -39,11 +54,11 @@ class EvalResult:
         self.wins = deque()
         self.time = 0
 
-    def add_result(self, reward, steps, has_won):
+    def add_result(self, eval_episode_result):
         self.num_episodes += 1
-        self.rewards_per_episode.append(reward)
-        self.steps_per_episode.append(steps)
-        self.wins.append(1 if has_won else 0)
+        self.rewards_per_episode.append(eval_episode_result.reward)
+        self.steps_per_episode.append(eval_episode_result.steps)
+        self.wins.append(1 if eval_episode_result.has_won else 0)
 
     def get_accuracy(self):
         return 100.0 * (sum(self.wins) / len(self.wins))

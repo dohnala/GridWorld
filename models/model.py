@@ -65,7 +65,7 @@ class Model:
 
         :return: all trainable parameters
         """
-        return self.network.parameters()
+        return list(self.network.parameters())
 
     def share_memory(self):
         """

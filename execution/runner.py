@@ -1,10 +1,10 @@
-from timeit import default_timer as timer
 import logging
+from timeit import default_timer as timer
 
 import numpy as np
 
 from agents.agent import RunPhase
-from execution.result import AverageRunResult, RunResult, TrainResult, EvalResult
+from execution.result import AverageRunResult, TrainEpisodeResult, EvalEpisodeResult, EvalResult, TrainResult
 
 
 class Runner:
@@ -67,149 +67,111 @@ class Runner:
         :param after_run: function called after run which takes an agent
         :return: evaluation result
         """
+        pass
 
-        # Create env and agent for the run
-        env = self.env_creator()
-        agent = self.agent_creator()
-
-        train_results = []
-        eval_results = []
-
-        current_episode = 0
-
-        while True:
-            remaining_episodes = train_episodes - current_episode
-            num_episodes = eval_after if remaining_episodes > eval_after else remaining_episodes
-
-            # Run training phase
-            train_result = self.__train__(env, agent, num_episodes)
-
-            # Store training result
-            train_results.append(train_result)
-
-            # Update episodes
-            current_episode += num_episodes
-
-            # Run evaluation phase
-            eval_result = self.__eval__(env, agent, eval_episodes)
-
-            # Log evaluation result
-            self.__log_eval_result__(current_episode, eval_result)
-
-            # Store evaluation result
-            eval_results.append(eval_result)
-
-            # If termination condition is defined and evaluated as True, break loop
-            if termination_cond and termination_cond(eval_result):
-                self.logger.info("")
-                self.logger.info("Termination condition passed")
-                self.logger.info("")
-                break
-
-            # If number of episodes exceed total number of training episodes, break loop
-            if current_episode >= train_episodes:
-                break
-
-        # Create run result
-        result = RunResult(train_results, eval_results)
-
-        # Log run result
-        self.__log_run_result__(result)
-        self.logger.info("-" * 150)
-
-        # Call after run callback
-        if after_run:
-            after_run(run, agent)
-
-        return result
-
-    def __train__(self, env, agent, num_episodes):
+    @staticmethod
+    def __train_episode__(env, agent):
         """
-        Run a training phase.
+        Train given agent on given environment for one episode.
 
         :param env: environment
         :param agent: agent
-        :param num_episodes: number of episodes to train in this phase
-        :return: result
+        :return: episode result
+        """
+        episode_reward = 0
+
+        # Reset an environment before episode
+        state = env.reset()
+
+        while not env.is_terminal():
+            # Get agent's action
+            action = agent.act(state, RunPhase.TRAIN)
+
+            # Execute given action in environment
+            reward, next_state, done = env.step(action)
+
+            # Pass observed transition to the agent
+            agent.observe(state, action, reward, next_state, done)
+
+            episode_reward += reward
+
+            # Update state
+            state = next_state
+
+        # Return episode result
+        return TrainEpisodeResult(
+            reward=episode_reward,
+            steps=env.state.step,
+            has_won=env.has_won(),
+            loss=agent.last_loss)
+
+    def __train_episodes__(self, env, agent, num_episodes):
+        """
+        Train given agent on given environment for one episode.
+
+        :param env: environment
+        :param agent: agent
+        :param num_episodes: number of episodes
+        :return: train result
         """
         start = timer()
 
         result = TrainResult(num_episodes)
 
-        if num_episodes == 0:
-            return result
-
         for episode in range(num_episodes):
-            episode_reward = 0
-
-            # Reset an environment before episode
-            state = env.reset()
-
-            while not env.is_terminal():
-                # Get agent's action
-                action = agent.act(state, RunPhase.TRAIN)
-
-                # Execute given action in environment
-                reward, next_state, done = env.step(action)
-
-                # Pass observed transition to the agent
-                agent.observe(state, action, reward, next_state, done)
-
-                episode_reward += reward
-
-                # Update state
-                state = next_state
-
-            # Add episode result
-            result.add_result(
-                reward=episode_reward,
-                steps=env.state.step,
-                has_won=env.has_won(),
-                loss=agent.last_loss)
+            result.add_result(self.__train_episode__(env, agent))
 
         result.time = timer() - start
 
         return result
 
-    def __eval__(self, env, agent, num_episodes):
+    @staticmethod
+    def __eval_episode__(env, agent):
         """
-        Run an evaluation phase.
+        Eval agent on given environment for one episode.
 
         :param env: environment
         :param agent: agent
-        :param num_episodes: number of evaluation episodes
-        :return: result
+        :return: episode result
         """
-        start = timer()
+        episode_reward = 0
 
+        # Reset an environment before episode
+        state = env.reset()
+
+        while not env.is_terminal():
+            # Get agent's action
+            action = agent.act(state, RunPhase.EVAL)
+
+            # Execute given action in environment
+            reward, next_state, done = env.step(action)
+
+            episode_reward += reward
+
+            # Update state
+            state = next_state
+
+        # Return episode result
+        return EvalEpisodeResult(
+            reward=episode_reward,
+            steps=env.state.step,
+            has_won=env.has_won())
+
+    def __eval_episodes__(self, env, agent, num_episodes):
+        """
+        Eval agent on given environment for given number of episodes.
+
+        :param env: environment
+        :param agent: agent
+        :param num_episodes: number of episodes
+        :return: eval result
+        """
         result = EvalResult()
 
-        if num_episodes == 0:
-            return result
+        start = timer()
 
         for episode in range(num_episodes):
-            episode_reward = 0
-
-            # Reset an environment before episode
-            state = env.reset()
-
-            while not env.is_terminal():
-                # Get agent's action
-                action = agent.act(state, RunPhase.EVAL)
-
-                # Execute given action in environment
-                reward, next_state, done = env.step(action)
-
-                episode_reward += reward
-
-                # Update state
-                state = next_state
-
-            # Add episode result
-            result.add_result(
-                reward=episode_reward,
-                steps=env.state.step,
-                has_won=env.has_won())
+            result.add_result(self.__eval_episode__(env, agent))
 
         result.time = timer() - start
 

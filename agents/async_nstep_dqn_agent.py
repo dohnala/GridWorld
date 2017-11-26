@@ -69,6 +69,7 @@ class NStepDQNWorkerAgent(NStepAgent, WorkerAgent):
         :param config: worker's configuration
         """
         super(NStepDQNWorkerAgent, self).__init__(
+            worker_id=worker_id,
             name="Worker_{}".format(worker_id),
             model=NstepQModel(
                 input_shape=config.encoder.shape(),

@@ -1,6 +1,6 @@
 from agents import NStepDQNAgent, NStepDQNAgentConfig as Config
 from encoders import OneHotEncoder
-from execution import Runner
+from execution import SyncRunner
 from experiments import Experiment
 from networks import NN
 from optimizers import AdamOptimizer
@@ -28,7 +28,7 @@ class FindTreasureV0(Experiment):
                 target_sync=10))
 
     def create_runner(self, env_creator, agent_creator):
-        return Runner(env_creator, agent_creator)
+        return SyncRunner(env_creator, agent_creator)
 
     def termination_cond(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.93

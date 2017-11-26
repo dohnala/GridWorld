@@ -78,7 +78,7 @@ class SharedAdamOptimizer(Optimizer):
 
     def set_shared_parameters(self, parameters):
         self.shared_parameters = parameters
-        self.optimizer = SharedAdam(parameters, lr=self.learning_rate)
+        self.optimizer = SharedAdam(self.shared_parameters, lr=self.learning_rate)
 
     def step(self, loss, parameters):
         # Zero all gradients
