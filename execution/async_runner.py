@@ -26,7 +26,7 @@ class AsyncRunner(Runner):
         self.episode_results_queue = None
         self.run_result_queue = None
 
-    def __run__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
+    def __train__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
         # Set one thread per core
         os.environ['OMP_NUM_THREADS'] = '1'
 
@@ -49,7 +49,7 @@ class AsyncRunner(Runner):
 
         # Create worker processes
         for worker in agent.create_workers(self.num_workers):
-            p = mp.Process(target=self.__train__, args=(worker, train_episodes))
+            p = mp.Process(target=self.__train_worker__, args=(worker, train_episodes))
             p.start()
             processes.append(p)
 
@@ -63,15 +63,16 @@ class AsyncRunner(Runner):
 
         # Log run result
         self.__log_run_result__(result)
-        self.logger.info("-" * 150)
 
         # Call after run callback
         if after_run:
             after_run(run, agent)
 
+        self.logger.info("-" * 150)
+
         return result
 
-    def __train__(self, worker, num_episodes):
+    def __train_worker__(self, worker, num_episodes):
         # Create new environment for the worker
         env = self.env_creator()
 
@@ -93,7 +94,7 @@ class AsyncRunner(Runner):
         eval_agent = self.agent_creator()
 
         # Hold worker's episode
-        workers_episodes = {worker_id: 0 for worker_id in self.num_workers}
+        workers_episodes = {worker_id: 0 for worker_id in range(self.num_workers)}
 
         current_episode = 0
 

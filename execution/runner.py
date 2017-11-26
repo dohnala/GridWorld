@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 import numpy as np
 
 from agents.agent import RunPhase
-from execution.result import AverageRunResult, TrainEpisodeResult, EvalEpisodeResult, EvalResult, TrainResult
+from execution.result import AverageRunResult, TrainEpisodeResult, EvalEpisodeResult, EvalResult, TrainResult, RunResult
 
 
 class Runner:
@@ -23,9 +23,9 @@ class Runner:
         self.agent_creator = agent_creator
         self.logger = logging.getLogger("root")
 
-    def run(self, train_episodes, eval_episodes, eval_after, runs=1, termination_cond=None, after_run=None):
+    def train(self, train_episodes, eval_episodes, eval_after, runs=1, termination_cond=None, after_run=None):
         """
-        Run agent for given number of episodes on the environment several times.
+        Train agent for given number of episodes on the environment several times.
 
         :param train_episodes: number of training episodes
         :param eval_episodes: number of evaluating episodes
@@ -42,7 +42,7 @@ class Runner:
             self.logger.info("")
 
             # Run agent on the environment
-            result = self.__run__(i, train_episodes, eval_episodes, eval_after, termination_cond, after_run)
+            result = self.__train__(i, train_episodes, eval_episodes, eval_after, termination_cond, after_run)
 
             # Store run result
             run_results.append(result)
@@ -55,9 +55,45 @@ class Runner:
 
         return result
 
-    def __run__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
+    def eval(self, eval_episodes, runs=1):
         """
-        Run agent for given number of episodes on the environment.
+        Evaluate agent for given number of episodes several times.
+
+        :param eval_episodes: number of evaluating episodes
+        :param runs: number of runs to average results
+        :return: average result across runs
+        """
+        run_results = []
+
+        for i in range(runs):
+            self.logger.info("# Run {}/{}".format(i + 1, runs))
+            self.logger.info("")
+
+            env = self.env_creator()
+            agent = self.agent_creator()
+
+            # Evaluate agent
+            eval_result = self.__eval_episodes__(env, agent, eval_episodes)
+
+            run_result = RunResult([], [eval_result])
+
+            self.__log_run_result__(run_result)
+            self.logger.info("-" * 150)
+
+            # Store run result
+            run_results.append(run_result)
+
+        # Create average run result
+        result = AverageRunResult(run_results)
+
+        # Log run result
+        self.__log_average_run_result__(result)
+
+        return result
+
+    def __train__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
+        """
+        Train agent for given number of episodes on the environment.
 
         :param run: current run
         :param train_episodes: number of training episodes

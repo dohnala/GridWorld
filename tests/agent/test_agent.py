@@ -72,7 +72,7 @@ class AgentTestCases:
 
             runner = SyncRunner(env_creator, agent_creator)
 
-            result = runner.run(
+            result = runner.train(
                 train_episodes=3000,
                 eval_episodes=100,
                 eval_after=500,
@@ -90,11 +90,7 @@ class AgentTestCases:
 
             runner = SyncRunner(env_creator, load_agent_creator)
 
-            result = runner.run(
-                train_episodes=0,
-                eval_episodes=100,
-                eval_after=0,
-                termination_cond=self.eval_cond)
+            result = runner.eval(eval_episodes=100)
 
             self.assertTrue(self.eval_cond(result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
                 result.get_accuracy(), result.get_mean_reward()))

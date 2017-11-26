@@ -16,7 +16,7 @@ class SyncRunner(Runner):
         """
         super(SyncRunner, self).__init__(env_creator, agent_creator)
 
-    def __run__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
+    def __train__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
         # Create env and agent for the run
         env = self.env_creator()
         agent = self.agent_creator()
@@ -64,10 +64,11 @@ class SyncRunner(Runner):
 
         # Log run result
         self.__log_run_result__(result)
-        self.logger.info("-" * 150)
 
         # Call after run callback
         if after_run:
             after_run(run, agent)
+
+        self.logger.info("-" * 150)
 
         return result

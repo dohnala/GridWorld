@@ -78,9 +78,9 @@ class Experiment:
         def save(run, agent):
             # Saving the agent state
             if args.save:
-                agent.save(args.save + "_" + run)
-                self.logger.info("Agent saved to {}".format(args.save))
+                agent.save(args.save)
                 self.logger.info("")
+                self.logger.info("Agent saved to {}".format(args.save))
 
         runner = self.create_runner(env_creator, agent_creator)
 
@@ -89,8 +89,12 @@ class Experiment:
 
         self.logger.info("")
 
-        # Run experiment
-        runner.run(args.train, args.eval, args.eval_after, args.runs, self.termination_cond, save)
+        if args.train:
+            # Train
+            runner.train(args.train, args.eval, args.eval_after, args.runs, self.termination_cond, save)
+        elif args.eval:
+            # Evaluate
+            runner.eval(args.eval, args.runs)
 
     @staticmethod
     def create_parser():
