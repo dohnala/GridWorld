@@ -26,3 +26,6 @@ python3 -m experiments.dqn_find_treasure_v1 --eval=100 --load=trained/dqn_find_t
 python3 -m experiments.async_dqn_find_treasure_v1 --train=10000 --eval=100 --eval_after=2000
 ```
 ### User pre-trained model
+```
+python3 -m experiments.async_dqn_find_treasure_v1 --eval=100 --load=trained/async_dqn_find_treasure_v1.ckp
+```
