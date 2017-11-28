@@ -1,4 +1,4 @@
-import multiprocessing as mp
+import torch.multiprocessing as mp
 import os
 from timeit import default_timer as timer
 
