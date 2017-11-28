@@ -2,7 +2,7 @@ import math
 import torch
 import torch.optim as optim
 
-from optimizers import Optimizer
+from optimizers import Optimizer, OptimizerCreator
 
 
 class SharedAdam(optim.Adam):
@@ -64,7 +64,7 @@ class SharedAdam(optim.Adam):
         return loss
 
 
-class SharedAdamOptimizer(Optimizer):
+class SharedAdamOptimizer(OptimizerCreator):
     """
     Shared Adam optimizer.
     """
@@ -73,39 +73,11 @@ class SharedAdamOptimizer(Optimizer):
         super(SharedAdamOptimizer, self).__init__()
 
         self.learning_rate = learning_rate
-        self.shared_parameters = None
         self.optimizer = None
 
-    def set_shared_parameters(self, parameters):
-        self.shared_parameters = parameters
-        self.optimizer = SharedAdam(self.shared_parameters, lr=self.learning_rate)
-
-    def step(self, loss, parameters):
-        # Zero all gradients
-        self.optimizer.zero_grad()
-
-        # Compute all gradients w.r.t given loss
-        loss.backward()
-
-        # Ensure that given parameters share grads with share parameters
-        self.__ensure_shared_grads__(parameters)
-
-        # Update all variables with computed gradients
-        self.optimizer.step()
-
-    def share_memory(self):
-        if self.optimizer:
+    def create(self, parameters):
+        if self.optimizer is None:
+            self.optimizer = SharedAdam(parameters, lr=self.learning_rate)
             self.optimizer.share_memory()
 
-    def state_dict(self):
-        return self.optimizer.state_dict() if self.optimizer else {}
-
-    def load_state_dict(self, state_dict):
-        if self.optimizer:
-            self.optimizer.load_state_dict(state_dict)
-
-    def __ensure_shared_grads__(self, parameters):
-        for param, shared_param in zip(parameters, self.shared_parameters):
-            if shared_param.grad is not None:
-                return
-            shared_param._grad = param.grad
+        return Optimizer(self.optimizer, parameters)

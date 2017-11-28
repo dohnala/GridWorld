@@ -52,12 +52,8 @@ class Agent:
         self.model = model
         self.config = config
         self.encoder = config.encoder
-        self.optimizer = config.optimizer
         self.train_policy = config.train_policy
         self.eval_policy = config.eval_policy
-
-        # Configure model with optimizer
-        self.model.set_optimizer(self.optimizer)
 
         # Current phase the agent is in
         self.current_phase = None
@@ -67,6 +63,12 @@ class Agent:
 
         # Loss after last model update
         self.last_loss = None
+
+        # Configure optimizer
+        self.optimizer = self.__create_optimizer__(config.optimizer)
+
+        # Configure model with optimizer
+        self.model.set_optimizer(self.optimizer)
 
     def act(self, state, phase):
         """
@@ -134,6 +136,15 @@ class Agent:
 
         self.model.load_state_dict(checkpoint['model'])
         self.optimizer.load_state_dict(checkpoint["optimizer"])
+
+    def __create_optimizer__(self, optimizer_creator):
+        """
+        Create optimizer.
+
+        :param optimizer_creator: creator used to create optimizer
+        :return: optimizer
+        """
+        return optimizer_creator.create(self.model.parameters())
 
     def __set_phase__(self, phase):
         """

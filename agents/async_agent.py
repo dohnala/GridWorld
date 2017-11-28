@@ -12,12 +12,6 @@ class AsyncAgent(Agent):
         # Move model parameters to shared memory
         self.model.share_memory()
 
-        # Set parameters of shared model to optimizer
-        self.optimizer.set_shared_parameters(self.model.parameters())
-
-        # Move optimizer parameters to shared memory
-        self.optimizer.share_memory()
-
     def observe(self, state, action, reward, next_state, done):
         pass
 
@@ -53,10 +47,13 @@ class WorkerAgent(Agent):
         :param shared_model: shared model
         :param kwargs: kwargs
         """
-        super(WorkerAgent, self).__init__(**kwargs)
-
         self.worker_id = worker_id
         self.shared_model = shared_model
+
+        super(WorkerAgent, self).__init__(**kwargs)
+
+    def __create_optimizer__(self, optimizer_creator):
+        return optimizer_creator.create(self.shared_model.parameters())
 
     def __update_model__(self, transitions):
         super(WorkerAgent, self).__update_model__(transitions)
