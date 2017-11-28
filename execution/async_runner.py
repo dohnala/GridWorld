@@ -94,6 +94,7 @@ class AsyncRunner(Runner):
     def __eval__(self, agent, train_episodes, eval_episodes, termination_cond):
         # Create new environment and eval agent
         env = self.env_creator()
+        eval_agent = self.agent_creator()
 
         train_result = TrainResult(100)
         eval_results = []
@@ -104,8 +105,11 @@ class AsyncRunner(Runner):
             # Find out current episode
             current_episode = sum(self.agent_progress)
 
+            # Copy current agent's state to eval agent
+            eval_agent.model.load_state_dict(agent.model.state_dict())
+
             # Evaluate agent for given number of episodes
-            result = self.__eval_episodes__(env, agent, eval_episodes)
+            result = self.__eval_episodes__(env, eval_agent, eval_episodes)
 
             # Store evaluation result
             eval_results.append(result)
