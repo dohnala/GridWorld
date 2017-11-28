@@ -56,7 +56,7 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
 
     def eval_cond(self, result):
-        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.85
+        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
 
     def create_task(self):
         return FindTreasureTask(width=4, height=4, episode_length=20, treasure_position=(2, 3))

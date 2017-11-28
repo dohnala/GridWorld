@@ -1,14 +1,23 @@
+import random
+import numpy as np
+
+
 class GridWorldEnv:
     """
     Grid world environment which agents can interact with.
     """
 
-    def __init__(self, task):
+    def __init__(self, task, seed=None):
         """
         Initialize grid world environment for given task.
 
         :param task: task
+        :param seed: random seed
         """
+        if seed:
+            random.seed(seed)
+            np.random.seed(seed)
+
         self.task = task
         self.width = self.task.width
         self.height = self.task.height

@@ -7,7 +7,7 @@ from env.tasks import find_task
 
 class FindTreasureTaskTest(unittest.TestCase):
     def setUp(self):
-        self.env = GridWorldEnv(find_task("find_treasure_v0"), seed=1)
+        self.env = GridWorldEnv(find_task("find_treasure_v1"), seed=1)
 
     def test_start_state(self):
         start_state = self.env.state
@@ -20,8 +20,8 @@ class FindTreasureTaskTest(unittest.TestCase):
 
         treasure = start_state.get_object_by_type(Treasure)
 
-        self.assertEqual(6, treasure.x)
-        self.assertEqual(7, treasure.y)
+        self.assertEqual(4, treasure.x)
+        self.assertEqual(1, treasure.y)
 
     def test_get_actions(self):
         self.assertListEqual([0, 1, 2, 3], self.env.actions)
@@ -37,57 +37,17 @@ class FindTreasureTaskTest(unittest.TestCase):
     def test_positive_goal(self):
         # (2, 1)
 
-        reward, _, done = self.env.step(0)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (2, 2)
-
-        reward, _, done = self.env.step(0)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (2, 3)
-
-        reward, _, done = self.env.step(0)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (2, 4)
-
-        reward, _, done = self.env.step(0)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (2, 5)
-
-        reward, _, done = self.env.step(0)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (2, 6)
-
-        reward, _, done = self.env.step(0)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (2, 7)
-
         reward, _, done = self.env.step(2)
         self.assertFalse(done)
         self.assertEqual(-0.01, reward)
-        # (3, 7)
-
-        reward, _, done = self.env.step(2)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (4, 7)
-
-        reward, _, done = self.env.step(2)
-        self.assertFalse(done)
-        self.assertEqual(-0.01, reward)
-        # (5, 7)
+        # (3, 1)
 
         reward, next_state, done = self.env.step(2)
         self.assertTrue(done)
         self.assertEqual(1, reward)
-        self.assertEqual(10, next_state.step)
-        self.assertEqual(6, next_state.agent.x)
-        self.assertEqual(7, next_state.agent.y)
+        self.assertEqual(2, next_state.step)
+        self.assertEqual(4, next_state.agent.x)
+        self.assertEqual(1, next_state.agent.y)
 
     def test_negative_goal(self):
         reward, next_state, done = None, None, None

@@ -2,7 +2,8 @@ import logging
 from timeit import default_timer as timer
 
 import numpy as np
-
+import torch
+import random
 from agents.agent import RunPhase
 from execution.result import AverageRunResult, TrainEpisodeResult, EvalEpisodeResult, EvalResult, TrainResult, RunResult
 
@@ -12,16 +13,21 @@ class Runner:
     Runner provides an abstraction for executing agent on given environment.
     """
 
-    def __init__(self, env_creator, agent_creator):
+    def __init__(self, env_creator, agent_creator, seed=1):
         """
         Initialize runner.
 
         :param env_creator: function to create environment
         :param agent_creator: function to create agent
+        :param seed: random seed
         """
         self.env_creator = env_creator
         self.agent_creator = agent_creator
+        self.seed = seed
         self.logger = logging.getLogger("root")
+
+        if seed:
+            self.__set_seed__(self.seed)
 
     def train(self, train_episodes, eval_episodes, eval_after, runs=1, termination_cond=None, after_run=None):
         """
@@ -282,3 +288,14 @@ class Runner:
             np.var(result.train_time_per_run)))
 
         self.logger.info("")
+
+    @staticmethod
+    def __set_seed__(seed):
+        """
+        Set random seed.
+
+        :return: None
+        """
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)

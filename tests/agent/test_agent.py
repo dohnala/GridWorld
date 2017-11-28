@@ -62,7 +62,7 @@ class AgentTestCases:
             task = self.create_task()
 
             def env_creator():
-                return GridWorldEnv(task)
+                return GridWorldEnv(task, seed=1)
 
             def agent_creator():
                 return self.create_agent(task.width, task.height, len(task.get_actions()))
@@ -70,7 +70,7 @@ class AgentTestCases:
             def save(run, agent):
                 agent.save("agent.ckp")
 
-            runner = SyncRunner(env_creator, agent_creator)
+            runner = SyncRunner(env_creator, agent_creator, seed=1)
 
             result = runner.train(
                 train_episodes=3000,
@@ -88,7 +88,7 @@ class AgentTestCases:
 
                 return agent
 
-            runner = SyncRunner(env_creator, load_agent_creator)
+            runner = SyncRunner(env_creator, load_agent_creator, seed=1)
 
             result = runner.eval(eval_episodes=100)
 

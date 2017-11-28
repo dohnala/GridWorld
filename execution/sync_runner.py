@@ -7,14 +7,15 @@ class SyncRunner(Runner):
     Synchronous runner implementation.
     """
 
-    def __init__(self, env_creator, agent_creator):
+    def __init__(self, env_creator, agent_creator, seed=1):
         """
         Initialize runner.
 
         :param env_creator: function to create environment
         :param agent_creator: function to create agent
+        :param seed: random seed
         """
-        super(SyncRunner, self).__init__(env_creator, agent_creator)
+        super(SyncRunner, self).__init__(env_creator, agent_creator, seed)
 
     def __train__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
         # Create env and agent for the run

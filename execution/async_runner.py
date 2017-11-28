@@ -12,15 +12,16 @@ class AsyncRunner(Runner):
     """
     Asynchronous runner implementation.
     """
-    def __init__(self, env_creator, agent_creator, num_workers):
+    def __init__(self, env_creator, agent_creator, num_workers, seed=1):
         """
         Initialize agent.
 
         :param env_creator: function to create environment
         :param agent_creator: function to create agent
         :param num_workers: number of workers
+        :param seed: random seed
         """
-        super(AsyncRunner, self).__init__(env_creator, agent_creator)
+        super(AsyncRunner, self).__init__(env_creator, agent_creator, seed)
 
         self.num_workers = num_workers
 
@@ -77,6 +78,10 @@ class AsyncRunner(Runner):
         return result
 
     def __train_worker__(self, worker, train_episodes):
+        # Set random seed for this process
+        if self.seed:
+            self.__set_seed__(self.seed + worker.worker_id)
+
         # Create new environment for the worker
         env = self.env_creator()
 
@@ -92,6 +97,10 @@ class AsyncRunner(Runner):
             self.agent_progress[worker.worker_id] += 1
 
     def __eval__(self, agent, train_episodes, eval_episodes, termination_cond):
+        # Set random seed for this process
+        if self.seed:
+            self.__set_seed__(self.seed + self.num_workers)
+
         # Create new environment and eval agent
         env = self.env_creator()
         eval_agent = self.agent_creator()
