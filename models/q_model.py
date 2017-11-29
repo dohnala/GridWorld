@@ -14,16 +14,18 @@ class QModelConfig(ModelConfig):
     Q model's configuration.
     """
 
-    def __init__(self, base_network, discount):
+    def __init__(self, base_network, discount, use_cuda=False):
         """
         Initialize configuration.
 
         :param base_network: base network
         :param discount: discount factor
+        :param use_cuda: use GPU
         """
         super(QModelConfig, self).__init__(base_network)
 
         self.discount = discount
+        self.use_cuda = use_cuda
 
 
 class QNetworkModule(NetworkModule):
@@ -50,9 +52,7 @@ class QNetworkModule(NetworkModule):
         self.__init_parameters__(self.output)
 
     def forward(self, states):
-        result = Variable(torch.from_numpy(states), requires_grad=False)
-
-        result = self.network(result)
+        result = self.network(states)
         result = self.output(result)
 
         return result
@@ -90,6 +90,11 @@ class QModel(Model):
         self.steps = 0
         self.discount = config.discount
         self.target_sync = config.target_sync
+        self.use_cuda = config.use_cuda
+
+        # Move network to GPU
+        if self.use_cuda:
+            self.network.cuda()
 
         # Create target network as copy of main network if sync is defined
         if target_sync:
@@ -102,7 +107,14 @@ class QModel(Model):
         :param states: states
         :return: Q values of all actions
         """
-        return self.network(states)
+        # Turn states into variable
+        states = Variable(torch.from_numpy(states), requires_grad=False)
+
+        # Move states variable into GPU
+        if self.use_cuda:
+            states.cuda()
+
+        return self.network(states).data.cpu().numpy()
 
     def update(self, states, actions, rewards, next_states, done):
         """
@@ -115,11 +127,20 @@ class QModel(Model):
         :param done: done flags
         :return: loss
         """
+        # Turn states into variable
+        states = Variable(torch.from_numpy(states), requires_grad=False)
+
+        if self.use_cuda:
+            states.cuda()
+
         # Compute model outputs for given states
-        outputs = self.predict(states)
+        outputs = self.network(states)
 
         # Turn actions into variable
         actions = Variable(torch.from_numpy(actions), requires_grad=False)
+
+        if self.use_cuda:
+            actions.cuda()
 
         # Compute predictions of actions in given states
         predictions = outputs.gather(1, actions).squeeze()
@@ -140,7 +161,7 @@ class QModel(Model):
         if self.target_sync and self.steps % self.target_sync == 0:
             self.__sync_target_network__()
 
-        return loss.data[0]
+        return loss.data.cpu().numpy()[0]
 
     def __calculate_targets__(self, rewards, next_states, done):
         """
@@ -153,10 +174,17 @@ class QModel(Model):
         """
         # Create masks to differentiate terminal states
         done_mask = torch.from_numpy(done)
+
+        if self.use_cuda:
+            done_mask.cuda()
+
         non_done_mask = 1 - done_mask
 
         # Turns rewards into variables
         rewards = Variable(torch.from_numpy(rewards))
+
+        if self.use_cuda:
+            rewards.cuda()
 
         # Select only next states which are not terminal
         non_terminal_next_states = np.asarray([next_states[i] for i in range(len(done)) if not done[i][0]])
@@ -164,8 +192,17 @@ class QModel(Model):
         # Create targets variable
         targets = Variable(torch.zeros(len(done), 1), requires_grad=False)
 
+        if self.use_cuda:
+            targets.cuda()
+
         # if there are any non terminal next states
         if non_terminal_next_states.size > 0:
+            # Turn non terminal next states into variable
+            non_terminal_next_states = Variable(torch.from_numpy(non_terminal_next_states), requires_grad=False)
+
+            if self.use_cuda:
+                non_terminal_next_states.cuda()
+
             # Compute predictions using target network
             target_pred = self.__get_target_network__()(non_terminal_next_states)
 

@@ -84,7 +84,7 @@ class Agent:
 
         # Encode state and use model to predict action values
         states = np.expand_dims(self.__encode_state__(state), axis=0)
-        action_values = self.model.predict(states).data.numpy()[0]
+        action_values = self.model.predict(states)[0]
 
         # Select an action using policy
         action = self.current_policy.select_action(action_values)

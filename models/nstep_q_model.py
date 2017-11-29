@@ -17,14 +17,21 @@ class NstepQModel(QModel):
         else:
             # Use target network to estimate value
             # Final value is maximum q value for last next state
-            last_state = np.expand_dims(next_states[-1], axis=0)
-            final_value = self.__get_target_network__()(last_state).data.numpy().max()
+            last_state = Variable(torch.from_numpy(np.expand_dims(next_states[-1], axis=0)), requires_grad=False)
+
+            if self.use_cuda:
+                last_state.cuda()
+
+            final_value = self.__get_target_network__()(last_state).data.cpu().numpy().max()
 
         # Compute targets as discounted cumulative rewards
         targets = self.__discounted_cumulative_rewards__(rewards, final_value)
 
         # Turn targets into variable
         targets = Variable(torch.from_numpy(targets), requires_grad=False)
+
+        if self.use_cuda:
+            targets.cuda()
 
         return targets
 
