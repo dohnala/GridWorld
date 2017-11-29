@@ -112,7 +112,7 @@ class QModel(Model):
 
         # Move states variable into GPU
         if self.use_cuda:
-            states.cuda()
+            states = states.cuda()
 
         return self.network(states).data.cpu().numpy()
 
@@ -131,7 +131,7 @@ class QModel(Model):
         states = Variable(torch.from_numpy(states), requires_grad=False)
 
         if self.use_cuda:
-            states.cuda()
+            states = states.cuda()
 
         # Compute model outputs for given states
         outputs = self.network(states)
@@ -140,7 +140,7 @@ class QModel(Model):
         actions = Variable(torch.from_numpy(actions), requires_grad=False)
 
         if self.use_cuda:
-            actions.cuda()
+            actions = actions.cuda()
 
         # Compute predictions of actions in given states
         predictions = outputs.gather(1, actions).squeeze()
@@ -176,7 +176,7 @@ class QModel(Model):
         done_mask = torch.from_numpy(done)
 
         if self.use_cuda:
-            done_mask.cuda()
+            done_mask = done_mask.cuda()
 
         non_done_mask = 1 - done_mask
 
@@ -184,7 +184,7 @@ class QModel(Model):
         rewards = Variable(torch.from_numpy(rewards))
 
         if self.use_cuda:
-            rewards.cuda()
+            rewards = rewards.cuda()
 
         # Select only next states which are not terminal
         non_terminal_next_states = np.asarray([next_states[i] for i in range(len(done)) if not done[i][0]])
@@ -193,7 +193,7 @@ class QModel(Model):
         targets = Variable(torch.zeros(len(done), 1), requires_grad=False)
 
         if self.use_cuda:
-            targets.cuda()
+            targets = targets.cuda()
 
         # if there are any non terminal next states
         if non_terminal_next_states.size > 0:
@@ -201,7 +201,7 @@ class QModel(Model):
             non_terminal_next_states = Variable(torch.from_numpy(non_terminal_next_states), requires_grad=False)
 
             if self.use_cuda:
-                non_terminal_next_states.cuda()
+                non_terminal_next_states = non_terminal_next_states.cuda()
 
             # Compute predictions using target network
             target_pred = self.__get_target_network__()(non_terminal_next_states)

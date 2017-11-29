@@ -20,7 +20,7 @@ class NstepQModel(QModel):
             last_state = Variable(torch.from_numpy(np.expand_dims(next_states[-1], axis=0)), requires_grad=False)
 
             if self.use_cuda:
-                last_state.cuda()
+                last_state = last_state.cuda()
 
             final_value = self.__get_target_network__()(last_state).data.cpu().numpy().max()
 
@@ -31,7 +31,7 @@ class NstepQModel(QModel):
         targets = Variable(torch.from_numpy(targets), requires_grad=False)
 
         if self.use_cuda:
-            targets.cuda()
+            targets = targets.cuda()
 
         return targets
 
