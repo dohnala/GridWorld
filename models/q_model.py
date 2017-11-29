@@ -108,7 +108,7 @@ class QModel(Model):
         :return: Q values of all actions
         """
         # Turn states into variable
-        states = Variable(torch.from_numpy(states), requires_grad=False)
+        states = Variable(torch.from_numpy(states), volatile=True)
 
         # Move states variable into GPU
         if self.use_cuda:
@@ -198,13 +198,16 @@ class QModel(Model):
         # if there are any non terminal next states
         if non_terminal_next_states.size > 0:
             # Turn non terminal next states into variable
-            non_terminal_next_states = Variable(torch.from_numpy(non_terminal_next_states), requires_grad=False)
+            non_terminal_next_states = Variable(torch.from_numpy(non_terminal_next_states), volatile=True)
 
             if self.use_cuda:
                 non_terminal_next_states = non_terminal_next_states.cuda()
 
             # Compute predictions using target network
             target_pred = self.__get_target_network__()(non_terminal_next_states)
+
+            # Switch volatile back to False, so the loss can be computed
+            target_pred.volatile = False
 
             # Compute targets for non terminal states
             targets[non_done_mask] = rewards[non_done_mask] + self.discount * target_pred.max(1)[0]

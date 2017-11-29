@@ -17,7 +17,7 @@ class NstepQModel(QModel):
         else:
             # Use target network to estimate value
             # Final value is maximum q value for last next state
-            last_state = Variable(torch.from_numpy(np.expand_dims(next_states[-1], axis=0)), requires_grad=False)
+            last_state = Variable(torch.from_numpy(np.expand_dims(next_states[-1], axis=0)), volatile=True)
 
             if self.use_cuda:
                 last_state = last_state.cuda()
