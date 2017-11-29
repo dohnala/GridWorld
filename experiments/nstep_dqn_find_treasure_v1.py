@@ -1,4 +1,4 @@
-from agents import DQNAgent, DQNAgentConfig as Config
+from agents import NStepDQNAgent, NStepDQNAgentConfig as Config
 from encoders import LayerEncoder
 from execution import SyncRunner
 from experiments import Experiment
@@ -9,14 +9,14 @@ from policies import EpsilonGreedyPolicy
 
 class FindTreasureV1(Experiment):
     """
-    Experiment of DQN agent for find_treasure_v1 task.
+    Experiment of N-step DQN agent for find_treasure_v1 task.
     """
 
     def __init__(self):
         super(FindTreasureV1, self).__init__("find_treasure_v1")
 
     def create_agent(self, width, height, num_actions):
-        return DQNAgent(
+        return NStepDQNAgent(
             num_actions=num_actions,
             config=Config(
                 encoder=LayerEncoder(width, height, treasure_position=True),
@@ -24,8 +24,7 @@ class FindTreasureV1(Experiment):
                 network=CNN(hidden_units=[128]),
                 policy=EpsilonGreedyPolicy(1, 0.01, 4000),
                 discount=0.95,
-                capacity=1000,
-                batch_size=16,
+                n_step=16,
                 target_sync=1000))
 
     def create_runner(self, env_creator, agent_creator):

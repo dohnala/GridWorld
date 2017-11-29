@@ -1,31 +1,26 @@
 ## Grid World
 
-## N-step DQN agent for find_treasure_v0
-### Train model
+## DQN agent for find_treasure_v0
 ```
 python3 -m experiments.dqn_find_treasure_v0 --train=1000 --eval=100 --eval_after=200
 ```
-### User pre-trained model
-```
-python3 -m experiments.dqn_find_treasure_v0 --eval=100 --load=trained/dqn_find_treasure_v0.ckp
-```
 
-## N-step DQN agent for find_treasure_v1
-### Train model
+## DQN agent for find_treasure_v1
 ```
 python3 -m experiments.dqn_find_treasure_v1 --train=10000 --eval=100 --eval_after=500
 ```
-### User pre-trained model
+
+## N-step DQN agent for find_treasure_v0
 ```
-python3 -m experiments.dqn_find_treasure_v1 --eval=100 --load=trained/dqn_find_treasure_v1.ckp
+python3 -m experiments.nstep_dqn_find_treasure_v0 --train=1000 --eval=100 --eval_after=200
+```
+
+## N-step DQN agent for find_treasure_v1
+```
+python3 -m experiments.nstep_dqn_find_treasure_v1 --train=10000 --eval=100 --eval_after=500
 ```
 
 ## Async N-step DQN agent for find_treasure_v1
-### Train model
 ```
-python3 -m experiments.async_dqn_find_treasure_v1 --train=10000 --eval=100 --eval_after=2000
-```
-### User pre-trained model
-```
-python3 -m experiments.async_dqn_find_treasure_v1 --eval=100 --load=trained/async_dqn_find_treasure_v1.ckp
+python3 -m experiments.async_nstep_dqn_find_treasure_v1 --train=10000 --eval=100 --eval_after=2000
 ```

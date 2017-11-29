@@ -1,4 +1,4 @@
-from agents import DQNAgent, DQNAgentConfig as Config
+from agents import NStepDQNAgent, NStepDQNAgentConfig as Config
 from encoders import OneHotEncoder
 from execution import SyncRunner
 from experiments import Experiment
@@ -16,7 +16,7 @@ class FindTreasureV0(Experiment):
         super(FindTreasureV0, self).__init__("find_treasure_v0")
 
     def create_agent(self, width, height, num_actions):
-        return DQNAgent(
+        return NStepDQNAgent(
             num_actions=num_actions,
             config=Config(
                 encoder=OneHotEncoder(width, height),
@@ -24,15 +24,14 @@ class FindTreasureV0(Experiment):
                 network=NN(),
                 policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
                 discount=0.95,
-                capacity=1000,
-                batch_size=32,
+                n_step=8,
                 target_sync=10))
 
     def create_runner(self, env_creator, agent_creator):
         return SyncRunner(env_creator, agent_creator)
 
     def termination_cond(self, result):
-        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
+        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.93
 
 
 if __name__ == "__main__":

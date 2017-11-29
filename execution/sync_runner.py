@@ -53,7 +53,6 @@ class SyncRunner(Runner):
             if termination_cond and termination_cond(eval_result):
                 self.logger.info("")
                 self.logger.info("Termination condition passed")
-                self.logger.info("")
                 break
 
             # If number of episodes exceed total number of training episodes, break loop

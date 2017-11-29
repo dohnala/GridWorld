@@ -236,6 +236,7 @@ class Runner:
             result.get_mean_steps()))
 
     def __log_run_result__(self, result):
+        self.logger.info("")
         self.logger.info("Result - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:5.2f}s".format(
             result.accuracy,
             result.reward,

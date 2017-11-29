@@ -130,7 +130,6 @@ class AsyncRunner(Runner):
             if termination_cond and termination_cond(result):
                 self.logger.info("")
                 self.logger.info("Termination condition passed")
-                self.logger.info("")
                 self.stop_flag.set()
 
             # If agents reached total number of training episodes, finish training

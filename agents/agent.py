@@ -205,8 +205,8 @@ class Agent:
 
         states = np.asarray(states)
         actions = np.vstack(actions)
-        rewards = np.vstack(rewards)
+        rewards = np.vstack(rewards).astype(np.float32)
         next_states = np.asarray(next_states)
-        done = np.vstack(done)
+        done = np.vstack(done).astype(np.uint8)
 
         return states, actions, rewards, next_states, done

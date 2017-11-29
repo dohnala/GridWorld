@@ -75,7 +75,7 @@ class AgentTestCases:
             result = runner.train(
                 train_episodes=3000,
                 eval_episodes=100,
-                eval_after=500,
+                eval_after=200,
                 termination_cond=self.train_cond,
                 after_run=save)
 
