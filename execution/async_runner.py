@@ -48,7 +48,7 @@ class AsyncRunner(Runner):
         start = timer()
 
         # Create evaluation process
-        p = mp.Process(target=self.__eval__, args=(agent, train_episodes, eval_episodes, termination_cond))
+        p = mp.Process(target=self.__eval__, args=(agent, train_episodes, eval_episodes, 1, termination_cond))
         p.start()
         processes.append(p)
 
@@ -77,7 +77,7 @@ class AsyncRunner(Runner):
 
         return result
 
-    def __train_worker__(self, worker, train_episodes):
+    def __train_worker__(self, worker, train_episodes, batch=10):
         # Set random seed for this process
         if self.seed:
             self.__set_seed__(self.seed + worker.worker_id)
@@ -90,13 +90,28 @@ class AsyncRunner(Runner):
 
         # Train until stop flag is set or number of training episodes is reached
         while not self.stop_flag.is_set() and self.agent_progress[worker.worker_id] < train_episodes:
-            # Train worker for one episode
-            result = self.__train_episode__(env, worker)
+            # Train worker for batch episode
+            self.__train_episodes__(env, worker, batch)
 
             # Update agent's progress
-            self.agent_progress[worker.worker_id] += 1
+            self.agent_progress[worker.worker_id] += batch
 
-    def __eval__(self, agent, train_episodes, eval_episodes, termination_cond):
+    def __eval__(self, agent, train_episodes, eval_episodes, eval_after_sec, termination_cond):
+        # Return True if all workers have finished training
+        def workers_finished():
+            return all(self.agent_progress[agent_id] >= train_episodes for agent_id in range(len(self.agent_progress)))
+
+        # Sleep while checking if workers already finished training
+        def wait_for_eval():
+            seconds = 0
+
+            while True:
+                time.sleep(1)
+                seconds += 1
+
+                if workers_finished() or seconds >= eval_after_sec:
+                    break
+
         # Set random seed for this process
         if self.seed:
             self.__set_seed__(self.seed + self.num_workers)
@@ -109,7 +124,8 @@ class AsyncRunner(Runner):
         eval_results = []
 
         while not self.stop_flag.is_set():
-            time.sleep(5)
+            # Wait for evaluation
+            wait_for_eval()
 
             # Find out current episode
             current_episode = sum(self.agent_progress)
@@ -133,7 +149,7 @@ class AsyncRunner(Runner):
                 self.stop_flag.set()
 
             # If agents reached total number of training episodes, finish training
-            if all(self.agent_progress[agent_id] >= train_episodes for agent_id in range(len(self.agent_progress))):
+            if workers_finished():
                 self.stop_flag.set()
 
         # Put run result to the queue
