@@ -34,7 +34,6 @@ class CNNModule(NetworkModule):
 
         self.nn = NNModule(self.__conv_shape_flatten__(width, height, self.conv1), hidden_units)
 
-    @profile
     def forward(self, states):
         result = F.leaky_relu(self.conv1(states))
         result = result.view(result.size(0), -1)

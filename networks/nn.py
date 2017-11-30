@@ -41,7 +41,6 @@ class NNModule(NetworkModule):
 
         self.hidden = nn.ModuleList(layers)
 
-    @profile
     def forward(self, states):
         result = states
 
