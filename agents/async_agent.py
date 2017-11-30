@@ -52,11 +52,22 @@ class WorkerAgent(Agent):
 
         super(WorkerAgent, self).__init__(**kwargs)
 
+        # Copy shared model after worker is initialized
+        self.__copy_shared_model__()
+
     def __create_optimizer__(self, optimizer_creator):
         return optimizer_creator.create(self.shared_model.parameters())
 
     def __update_model__(self, transitions):
         super(WorkerAgent, self).__update_model__(transitions)
 
-        # Copy shared model to worker model
+        # Copy shared model after each update
+        self.__copy_shared_model__()
+
+    def __copy_shared_model__(self):
+        """
+        Copy shared model to local worker model.
+
+        :return: None
+        """
         self.model.load_state_dict(self.shared_model.state_dict())
