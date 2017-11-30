@@ -22,7 +22,7 @@ class FindTreasureV1(Experiment):
                 encoder=LayerEncoder(width, height, treasure_position=True),
                 optimizer=SharedAdamOptimizer(0.001),
                 network=CNN(hidden_units=[128]),
-                policy=EpsilonGreedyPolicy(1, 0.01, 2000),
+                policy=EpsilonGreedyPolicy(1, 0.01, 1000),
                 discount=0.95,
                 n_step=16))
 
