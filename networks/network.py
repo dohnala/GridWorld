@@ -24,6 +24,7 @@ class NetworkModule(nn.Module):
 
         self.input_shape = input_shape
 
+    @profile
     def forward(self, states):
         """
         Compute forward pass of the network for given states and return result.

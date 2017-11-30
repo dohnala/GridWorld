@@ -51,6 +51,7 @@ class QNetworkModule(NetworkModule):
         # Initialize output layer parameters
         self.__init_parameters__(self.output)
 
+    @profile
     def forward(self, states):
         result = self.network(states)
         result = self.output(result)
@@ -100,6 +101,7 @@ class QModel(Model):
         if target_sync:
             self.target_network = copy.deepcopy(self.network)
 
+    @profile
     def predict(self, states):
         """
         Predict Q values for all actions for given states.
