@@ -1,5 +1,5 @@
 from execution import Runner
-from execution.result import RunResult
+from execution.result import RunResult, log_eval_result
 
 
 class SyncRunner(Runner):
@@ -7,20 +7,17 @@ class SyncRunner(Runner):
     Synchronous runner implementation.
     """
 
-    def __init__(self, env_creator, agent_creator, seed=1):
+    def __init__(self, env, agent, seed=1):
         """
         Initialize runner.
 
-        :param env_creator: function to create environment
-        :param agent_creator: function to create agent
+        :param env: environment
+        :param agent: agent
         :param seed: random seed
         """
-        super(SyncRunner, self).__init__(env_creator, agent_creator, seed)
+        super(SyncRunner, self).__init__(env, agent, seed)
 
-    def __train__(self, run, train_episodes, eval_episodes, eval_after, termination_cond=None, after_run=None):
-        # Create env and agent for the run
-        env = self.env_creator()
-        agent = self.agent_creator()
+    def train(self, train_episodes, eval_episodes, eval_after, goal=None):
 
         train_results = []
         eval_results = []
@@ -32,7 +29,7 @@ class SyncRunner(Runner):
             num_episodes = eval_after if remaining_episodes > eval_after else remaining_episodes
 
             # Run training phase
-            train_result = self.__train_episodes__(env, agent, num_episodes)
+            train_result = self.__train_episodes__(self.env, self.agent, num_episodes)
 
             # Store training result
             train_results.append(train_result)
@@ -41,34 +38,25 @@ class SyncRunner(Runner):
             current_episode += num_episodes
 
             # Run evaluation phase
-            eval_result = self.__eval_episodes__(env, agent, eval_episodes)
+            eval_result = self.__eval_episodes__(self.env, self.agent, eval_episodes)
 
             # Log evaluation result
-            self.__log_eval_result__(current_episode, eval_result)
+            log_eval_result(self.logger, current_episode, eval_result)
 
             # Store evaluation result
             eval_results.append(eval_result)
 
-            # If termination condition is defined and evaluated as True, break loop
-            if termination_cond and termination_cond(eval_result):
+            # If goal is defined and evaluated as True, break loop
+            if goal and goal(eval_result):
                 self.logger.info("")
                 self.logger.info("Termination condition passed")
+                self.logger.info("")
                 break
 
             # If number of episodes exceed total number of training episodes, break loop
             if current_episode >= train_episodes:
+                self.logger.info("")
                 break
 
-        # Create run result
-        result = RunResult(train_results, eval_results)
-
-        # Log run result
-        self.__log_run_result__(result)
-
-        # Call after run callback
-        if after_run:
-            after_run(run, agent)
-
-        self.logger.info("-" * 150)
-
-        return result
+        # Return run result
+        return RunResult(train_results, eval_results)

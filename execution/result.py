@@ -37,6 +37,16 @@ class TrainResult:
 
     def get_mean_loss(self):
         return np.mean(self.losses_per_episode)
+    
+    
+def log_train_result(logger, result, current_episode, train_episodes):
+    logger.info("Training {:4d}/{} - loss:{:>11f}, accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
+        current_episode ,
+        train_episodes,
+        result.get_mean_loss(),
+        result.get_accuracy(),
+        result.get_mean_reward(),
+        result.get_mean_steps()))
 
 
 class EvalEpisodeResult:
@@ -70,6 +80,14 @@ class EvalResult:
         return np.mean(self.steps_per_episode)
 
 
+def log_eval_result(logger, current_episode, result):
+    logger.info("Evaluation at {:4d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
+        current_episode,
+        result.get_accuracy(),
+        result.get_mean_reward(),
+        result.get_mean_steps()))
+
+
 class RunResult:
     def __init__(self, train_results, eval_results):
         self.train_episodes = sum(result.num_episodes for result in train_results)
@@ -79,6 +97,14 @@ class RunResult:
         self.steps = eval_results[-1].get_mean_steps()
         self.train_time = sum(result.time for result in train_results)
         self.eval_time = sum(result.time for result in eval_results)
+        
+
+def log_run_result(logger, result):
+    logger.info("Result - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:5.2f}s".format(
+        result.accuracy,
+        result.reward,
+        result.steps,
+        result.train_time))
 
 
 class AverageRunResult:
@@ -99,3 +125,50 @@ class AverageRunResult:
 
     def get_mean_steps(self):
         return np.mean(self.steps_per_run)
+    
+
+def log_average_run_result(logger, result):
+    logger.info("# Run results")
+    logger.info("")
+
+    for i in range(result.num_runs):
+        run_result = result.run_results[i]
+
+        logger.info("Run {:2d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:5.2f}s".format(
+            i + 1,
+            run_result.accuracy,
+            run_result.reward,
+            run_result.steps,
+            run_result.train_time))
+
+    logger.info("")
+    logger.info("# Average statistics")
+    logger.info("")
+
+    logger.info("Runs       - {}".format(result.num_runs))
+
+    logger.info("Accuracy   - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+        np.mean(result.accuracy_per_run),
+        np.min(result.accuracy_per_run),
+        np.max(result.accuracy_per_run),
+        np.var(result.accuracy_per_run)))
+
+    logger.info("Reward     - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+        np.mean(result.reward_per_run),
+        np.min(result.reward_per_run),
+        np.max(result.reward_per_run),
+        np.var(result.reward_per_run)))
+
+    logger.info("Steps      - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+        np.mean(result.steps_per_run),
+        np.min(result.steps_per_run),
+        np.max(result.steps_per_run),
+        np.var(result.steps_per_run)))
+
+    logger.info("Train time - mean:{:7.2f}, min:{:7.2f}, max:{:7.2f}, var:{:7.2f}".format(
+        np.mean(result.train_time_per_run),
+        np.min(result.train_time_per_run),
+        np.max(result.train_time_per_run),
+        np.var(result.train_time_per_run)))
+
+    logger.info("")

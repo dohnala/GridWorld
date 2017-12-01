@@ -2,7 +2,6 @@ import os
 import unittest
 
 from env.env import GridWorldEnv
-from execution import SyncRunner
 
 
 class AgentTestCases:
@@ -14,25 +13,7 @@ class AgentTestCases:
         def tearDown(self):
             os.remove("agent.ckp")
 
-        def train_cond(self, result):
-            """
-            Termination condition for training.
-
-            :param result: training result
-            :return: True if training should be terminated
-            """
-            return False
-
-        def eval_cond(self, result):
-            """
-            Termination condition for evaluation.
-
-            :param result: evaluation result
-            :return: True if evaluation is sufficient
-            """
-            return False
-
-        def create_task(self):
+        def define_task(self):
             """
             Create task.
 
@@ -40,7 +21,7 @@ class AgentTestCases:
             """
             pass
 
-        def create_agent(self, width, height, num_actions):
+        def define_agent(self, width, height, num_actions):
             """
             Create agent.
 
@@ -51,46 +32,80 @@ class AgentTestCases:
             """
             pass
 
+        def define_train_goal(self, result):
+            """
+            Define goal for training.
+
+            :param result: training result
+            :return: True if training should be terminated
+            """
+            return False
+
+        def define_eval_goal(self, result):
+            """
+            Define goal for evaluation.
+
+            :param result: evaluation result
+            :return: True if evaluation is sufficient
+            """
+            return False
+
+        def train(self, env, agent):
+            """
+            Train agent on environment.
+
+            :param env: environment
+            :param agent: agent
+            :return: result
+            """
+            pass
+
+        def eval(self, env, agent):
+            """
+            Evaluate agent on environment.
+
+            :param env: environment
+            :param agent: agent
+            :return: result
+            """
+            pass
+
         def test_agent(self):
             """
-            Train agent on given environment until training termination condition is passed or
-            number of training episodes is reached. After that, check if agent passes evaluation
-            condition, save its state, and check that restored agent passes evaluation condition, too.
+            Train agent on given environment until training goal is reached or
+            number of training episodes is exceeded. After that, check if agent passes evaluation
+            goal, save its state, and check that restored agent passes goal condition, too.
 
             :return: None
             """
-            task = self.create_task()
+            # Create task
+            task = self.define_task()
 
-            def env_creator():
-                return GridWorldEnv(task, seed=1)
+            # Create environment
+            env = GridWorldEnv(task, seed=1)
 
-            def agent_creator():
-                return self.create_agent(task.width, task.height, len(task.get_actions()))
+            # Create train agent
+            train_agent = self.define_agent(task.width, task.height, len(task.get_actions()))
 
-            def save(run, agent):
-                agent.save("agent.ckp")
+            # Train agent
+            train_result = self.train(env, train_agent)
 
-            runner = SyncRunner(env_creator, agent_creator, seed=1)
+            # Save agent
+            train_agent.save("agent.ckp")
 
-            result = runner.train(
-                train_episodes=3000,
-                eval_episodes=100,
-                eval_after=200,
-                termination_cond=self.train_cond,
-                after_run=save)
+            # Assert that agent passes evaluation goal
+            self.assertTrue(self.define_eval_goal(train_result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
+                train_result.accuracy, train_result.reward))
 
-            self.assertTrue(self.eval_cond(result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
-                result.get_accuracy(), result.get_mean_reward()))
+            # Create evaluation agent
+            eval_agent = self.define_agent(task.width, task.height, len(task.get_actions()))
 
-            def load_agent_creator():
-                agent = self.create_agent(task.width, task.height, len(task.get_actions()))
-                agent.load("agent.ckp")
+            # Restore evaluation agent
+            eval_agent.load("agent.ckp")
 
-                return agent
+            # Evaluate agent
+            eval_result = self.eval(env, eval_agent)
 
-            runner = SyncRunner(env_creator, load_agent_creator, seed=1)
-
-            result = runner.eval(eval_episodes=100)
-
-            self.assertTrue(self.eval_cond(result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
-                result.get_accuracy(), result.get_mean_reward()))
+            # Assert that evaluation agent passes evaluation goal
+            self.assertTrue(self.define_eval_goal(eval_result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
+                eval_result.accuracy, eval_result.reward))

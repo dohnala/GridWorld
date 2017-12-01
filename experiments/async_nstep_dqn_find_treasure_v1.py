@@ -1,5 +1,6 @@
 from agents import AsyncNStepDQNAgent, AsyncNStepDQNAgentConfig as Config
 from encoders import LayerEncoder
+from env.tasks import find_task
 from execution import AsyncRunner
 from experiments import Experiment
 from networks import CNN
@@ -13,9 +14,12 @@ class FindTreasureV1(Experiment):
     """
 
     def __init__(self):
-        super(FindTreasureV1, self).__init__("find_treasure_v1")
+        super(FindTreasureV1, self).__init__()
 
-    def create_agent(self, width, height, num_actions):
+    def define_task(self):
+        return find_task("find_treasure_v1")
+
+    def define_agent(self, width, height, num_actions):
         return AsyncNStepDQNAgent(
             num_actions=num_actions,
             config=Config(
@@ -26,11 +30,19 @@ class FindTreasureV1(Experiment):
                 discount=0.95,
                 n_step=16))
 
-    def create_runner(self, env_creator, agent_creator):
-        return AsyncRunner(env_creator, agent_creator, num_workers=4)
-
-    def termination_cond(self, result):
+    def define_goal(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
+
+    def train(self, env, agent):
+        return AsyncRunner(env, agent, 4).train(
+            train_episodes=10000,
+            eval_episodes=100,
+            eval_after_sec=1,
+            goal=self.define_goal)
+
+    def eval(self, env, agent):
+        return AsyncRunner(env, agent, 4).eval(
+            eval_episodes=100)
 
 
 if __name__ == "__main__":

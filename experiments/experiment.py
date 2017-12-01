@@ -3,7 +3,8 @@ import logging.config
 import os
 
 from env.env import GridWorldEnv
-from env.tasks import find_task
+from execution.average_runner import AverageRunner
+from execution.result import log_average_run_result
 
 logging.config.fileConfig("logging.conf")
 
@@ -13,42 +14,57 @@ class Experiment:
     Experiment in which agent tries to complete given task in environment.
     """
 
-    def __init__(self, task_name):
-        self.task_name = task_name
-        self.task = find_task(task_name)
+    def __init__(self):
         self.parser = self.create_parser()
         self.logger = logging.getLogger("root")
 
-    def create_agent(self, width, height, num_action):
+    def define_task(self):
         """
-        Create agent.
+        Define task which should be learned.
+
+        :return: task
+        """
+        pass
+
+    def define_agent(self, width, height, num_actions):
+        """
+        Define agent which should learn task.
 
         :param width: width
         :param height: height
-        :param num_action: number of actions
+        :param num_actions: number of actions
         :return: agent
         """
         pass
 
-    def create_runner(self, env_creator, agent_creator):
+    def define_goal(self, result):
         """
-        Create runner.
-
-        :param env_creator: function to create environment
-        :param agent_creator: function to create agent
-        :return: runner
-        """
-        pass
-
-    def termination_cond(self, result):
-        """
-        Define termination condition to terminate training process after some evaluation result is
-        achieved.
+        Define goal which agent should reach on given task.
 
         :param result: evaluation result
         :return: True if training process should be terminated
         """
         return False
+
+    def train(self, env, agent):
+        """
+        Train given agent on given environment and return result.
+
+        :param env: environment
+        :param agent: agent
+        :return: result
+        """
+        pass
+
+    def eval(self, env, agent):
+        """
+        Evaluate given agent on given environment and return result.
+
+        :param env: environment
+        :param agent: agent
+        :return: result
+        """
+        pass
 
     def run(self):
         """
@@ -56,13 +72,16 @@ class Experiment:
         """
 
         args = self.parser.parse_args()
-        task = self.task
 
-        def env_creator():
-            return GridWorldEnv(task)
+        def run_op(op):
+            # Create task
+            task = self.define_task()
 
-        def agent_creator():
-            agent = self.create_agent(task.width, task.height, len(task.get_actions()))
+            # Create environment
+            env = GridWorldEnv(task)
+
+            # Create agent
+            agent = self.define_agent(task.width, task.height, len(task.get_actions()))
 
             # Loading the agent state
             if args.load:
@@ -73,28 +92,43 @@ class Experiment:
                     self.logger.error("Agent couldn't be loaded. File {} doesn't exist".format(args.load))
                 self.logger.info("")
 
-            return agent
+            # Run op and return its result
+            return op(env, agent)
 
-        def save(run, agent):
-            # Saving the agent state
-            if args.save:
-                agent.save(args.save)
-                self.logger.info("")
-                self.logger.info("Agent saved to {}".format(args.save))
+        def run_train():
+            def train_op(env, agent):
+                # Train agent on environment
+                result = self.train(env, agent)
 
-        runner = self.create_runner(env_creator, agent_creator)
+                # Saving the agent state
+                if args.save:
+                    agent.save(args.save)
+                    self.logger.info("Agent saved to {}".format(args.save))
+                    self.logger.info("")
 
-        if runner is None:
-            raise ValueError("No runner specified")
+                return result
 
-        self.logger.info("")
+            # Run train op and return its result
+            return run_op(train_op)
+
+        def run_eval():
+            def eval_op(env, agent):
+                # Evaluate agent on environment
+                return self.eval(env, agent)
+
+            # Run eval op and return its result
+            return run_op(eval_op)
 
         if args.train:
-            # Train
-            runner.train(args.train, args.eval, args.eval_after, args.runs, self.termination_cond, save)
+            # Train agent
+            avg_result = AverageRunner(run_train).run(args.runs)
+
+            log_average_run_result(self.logger, avg_result)
         elif args.eval:
-            # Evaluate
-            runner.eval(args.eval, args.runs)
+            # Evaluate agent
+            avg_result = AverageRunner(run_eval).run(args.runs)
+
+            log_average_run_result(self.logger, avg_result)
 
     @staticmethod
     def create_parser():
@@ -105,9 +139,8 @@ class Experiment:
         """
         parser = argparse.ArgumentParser(description='Grid world experiment')
 
-        parser.add_argument('--train', type=int, default=0, help='# of train episodes')
-        parser.add_argument('--eval', type=int, default=0, help='# of eval episodes')
-        parser.add_argument('--eval_after', type=int, default=100, help='evaluate after # of episodes')
+        parser.add_argument('--train', action='store_true', help='train agent')
+        parser.add_argument('--eval', action='store_true', help='evaluate agent')
         parser.add_argument('--save', type=str, help="file to save model to")
         parser.add_argument('--load', type=str, help="file to load model from")
         parser.add_argument('--runs', type=int, default=1, help='# of runs to average results')
