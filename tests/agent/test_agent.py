@@ -1,5 +1,9 @@
 import os
+import random
 import unittest
+
+import numpy as np
+import torch
 
 from env.env import GridWorldEnv
 
@@ -9,6 +13,11 @@ class AgentTestCases:
         """
         Base test case for testing agents.
         """
+
+        def setUp(self):
+            random.seed(1)
+            np.random.seed(1)
+            torch.manual_seed(1)
 
         def tearDown(self):
             os.remove("agent.ckp")
@@ -93,8 +102,11 @@ class AgentTestCases:
             # Save agent
             train_agent.save("agent.ckp")
 
+            # Evaluate agent
+            eval_result = self.eval(env, train_agent)
+
             # Assert that agent passes evaluation goal
-            self.assertTrue(self.define_eval_goal(train_result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
+            self.assertTrue(self.define_eval_goal(eval_result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
                 train_result.accuracy, train_result.reward))
 
             # Create evaluation agent
