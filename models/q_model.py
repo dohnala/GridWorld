@@ -143,7 +143,7 @@ class QModel(Model):
             actions = actions.cuda()
 
         # Compute predictions of actions in given states
-        predictions = outputs.gather(1, actions).squeeze()
+        predictions = outputs.gather(1, actions)
 
         # Calculate targets
         targets = self.__calculate_targets__(rewards, next_states, done)
