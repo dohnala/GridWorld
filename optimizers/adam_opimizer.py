@@ -15,3 +15,6 @@ class AdamOptimizer(OptimizerCreator):
 
     def create(self, parameters):
         return Optimizer(optim.Adam(parameters, lr=self.learning_rate), parameters)
+
+    def __str__(self):
+        return "{}(learning_rate={})".format(self.__class__.__name__, self.learning_rate)

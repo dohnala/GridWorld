@@ -30,3 +30,7 @@ class EpsilonGreedyPolicy(ExplorationPolicy):
 
     def reset(self):
         self.epsilon = self.epsilon_initial
+
+    def __str__(self):
+        return "{}(epsilon_initial={}, epsilon_final={}, epsilon_episodes={})".format(
+            self.__class__.__name__, self.epsilon_initial, self.epsilon_final, self.epsilon_episodes)

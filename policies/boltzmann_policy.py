@@ -34,3 +34,7 @@ class BoltzmannPolicy(ExplorationPolicy):
 
     def reset(self):
         self.temperature = self.temperature_initial
+
+    def __str__(self):
+        return "{}(temperature_initial={}, temperature_final={}, temperature_episodes={})".format(
+            self.__class__.__name__, self.temperature_initial, self.temperature_final, self.temperature_episodes)

@@ -17,6 +17,9 @@ class CNN(Network):
     def build(self, input_shape):
         return CNNModule(input_shape, self.hidden_units)
 
+    def __str__(self):
+        return "{}(hidden_units={})".format(self.__class__.__name__, self.hidden_units)
+
 
 class CNNModule(NetworkModule):
     """

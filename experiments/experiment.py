@@ -157,6 +157,12 @@ class Experiment:
     def log_info(task, agent):
         logger.info("Task: {}".format(str(task)))
         logger.info("Agent: {}".format(str(agent.name)))
+
+        logger.info("    type: {}".format(agent.__class__.__name__))
+
+        for k, v in agent.config.__dict__.items():
+            logger.info("    {}: {}".format(k, str(v)))
+
         logger.info("")
 
     @staticmethod

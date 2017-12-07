@@ -14,6 +14,9 @@ class Network:
         """
         pass
 
+    def __str__(self):
+        return self.__class__.__name__
+
 
 class NetworkModule(nn.Module):
     """

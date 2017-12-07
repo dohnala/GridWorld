@@ -66,3 +66,6 @@ class Optimizer:
             if shared_param.grad is not None:
                 return
             shared_param._grad = param.grad
+
+    def __str__(self):
+        return self.__class__.__name__

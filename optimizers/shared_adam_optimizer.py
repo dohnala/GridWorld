@@ -81,3 +81,6 @@ class SharedAdamOptimizer(OptimizerCreator):
             self.optimizer.share_memory()
 
         return Optimizer(self.optimizer, parameters)
+
+    def __str__(self):
+        return "{}(learning_rate={})".format(self.__class__.__name__, self.learning_rate)
