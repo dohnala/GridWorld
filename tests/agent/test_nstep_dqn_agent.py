@@ -1,6 +1,6 @@
 from agents import NStepDQNAgent, NStepDQNAgentConfig as Config
 from encoders import OneHotEncoder
-from env.tasks import find_task, FindTreasureTask
+from env.tasks import FindTreasureTask, FindTreasureTaskV0
 from execution import SyncRunner
 from networks import NN
 from optimizers import AdamOptimizer
@@ -110,7 +110,7 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
 class NStepDQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
     def define_task(self):
-        return find_task("find_treasure_v0")
+        return FindTreasureTaskV0()
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(

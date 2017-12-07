@@ -1,6 +1,6 @@
 from agents import AsyncNStepDQNAgent, AsyncNStepDQNAgentConfig as Config
 from encoders import LayerEncoder
-from env.tasks import find_task
+from env.tasks import FindTreasureTaskV1
 from execution import AsyncRunner
 from experiments import Experiment
 from networks import CNN
@@ -17,7 +17,7 @@ class FindTreasureV1(Experiment):
         super(FindTreasureV1, self).__init__()
 
     def define_task(self):
-        return find_task("find_treasure_v1")
+        return FindTreasureTaskV1()
 
     def define_agent(self, width, height, num_actions):
         return AsyncNStepDQNAgent(

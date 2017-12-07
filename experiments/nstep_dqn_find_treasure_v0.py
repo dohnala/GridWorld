@@ -1,6 +1,6 @@
 from agents import NStepDQNAgent, NStepDQNAgentConfig as Config
 from encoders import OneHotEncoder
-from env.tasks import find_task
+from env.tasks import FindTreasureTaskV0
 from execution import SyncRunner
 from experiments import Experiment
 from networks import NN
@@ -17,7 +17,7 @@ class FindTreasureV0(Experiment):
         super(FindTreasureV0, self).__init__()
 
     def define_task(self):
-        return find_task("find_treasure_v0")
+        return FindTreasureTaskV0()
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(

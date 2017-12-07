@@ -89,6 +89,9 @@ class Experiment:
             # Create agent
             agent = self.define_agent(task.width, task.height, len(task.get_actions()))
 
+            # Log experiment info
+            self.log_info(task, agent)
+
             # Loading the agent state
             if args.load:
                 if os.path.isfile(args.load):
@@ -149,6 +152,12 @@ class Experiment:
 
         if torch.cuda.is_available():
             torch.cuda.manual_seed(seed)
+
+    @staticmethod
+    def log_info(task, agent):
+        logger.info("Task: {}".format(str(task)))
+        logger.info("Agent: {}".format(str(agent.name)))
+        logger.info("")
 
     @staticmethod
     def create_parser():
