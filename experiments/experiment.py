@@ -1,5 +1,9 @@
 import argparse
 import os
+import random
+
+import numpy as np
+import torch
 
 from env.env import GridWorldEnv
 from execution.average_runner import AverageRunner
@@ -43,22 +47,24 @@ class Experiment:
         """
         return False
 
-    def train(self, env, agent):
+    def train(self, env, agent, seed):
         """
         Train given agent on given environment and return result.
 
         :param env: environment
         :param agent: agent
+        :param seed: random seed
         :return: result
         """
         pass
 
-    def eval(self, env, agent):
+    def eval(self, env, agent, seed):
         """
         Evaluate given agent on given environment and return result.
 
         :param env: environment
         :param agent: agent
+        :param seed: random seed
         :return: result
         """
         pass
@@ -70,12 +76,15 @@ class Experiment:
 
         args = self.parser.parse_args()
 
+        # Set random seed
+        self.set_seed(args.seed)
+
         def run_op(op):
             # Create task
             task = self.define_task()
 
             # Create environment
-            env = GridWorldEnv(task)
+            env = GridWorldEnv(task, seed=args.seed)
 
             # Create agent
             agent = self.define_agent(task.width, task.height, len(task.get_actions()))
@@ -95,7 +104,7 @@ class Experiment:
         def run_train():
             def train_op(env, agent):
                 # Train agent on environment
-                result = self.train(env, agent)
+                result = self.train(env, agent, args.seed)
 
                 # Saving the agent state
                 if args.save:
@@ -111,7 +120,7 @@ class Experiment:
         def run_eval():
             def eval_op(env, agent):
                 # Evaluate agent on environment
-                return self.eval(env, agent)
+                return self.eval(env, agent, args.seed)
 
             # Run eval op and return its result
             return run_op(eval_op)
@@ -128,6 +137,20 @@ class Experiment:
             log_average_run_result(avg_result)
 
     @staticmethod
+    def set_seed(seed):
+        """
+        Set random seed.
+
+        :return: None
+        """
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+
+    @staticmethod
     def create_parser():
         """
         Create command line argument parser.
@@ -141,5 +164,6 @@ class Experiment:
         parser.add_argument('--save', type=str, help="file to save model to")
         parser.add_argument('--load', type=str, help="file to load model from")
         parser.add_argument('--runs', type=int, default=1, help='# of runs to average results')
+        parser.add_argument('--seed', type=int, default=1, help='random seed')
 
         return parser

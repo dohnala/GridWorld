@@ -14,10 +14,13 @@ class AgentTestCases:
         Base test case for testing agents.
         """
 
+        def __init__(self, methodName='runTest', seed=1):
+            super(AgentTestCases.AgentTestCase, self).__init__(methodName)
+
+            self.seed = seed
+
         def setUp(self):
-            random.seed(1)
-            np.random.seed(1)
-            torch.manual_seed(1)
+            self.set_seed(self.seed)
 
         def tearDown(self):
             os.remove("agent.ckp")
@@ -91,7 +94,7 @@ class AgentTestCases:
             task = self.define_task()
 
             # Create environment
-            env = GridWorldEnv(task, seed=1)
+            env = GridWorldEnv(task, seed=self.seed)
 
             # Create train agent
             train_agent = self.define_agent(task.width, task.height, len(task.get_actions()))
@@ -121,3 +124,18 @@ class AgentTestCases:
             # Assert that evaluation agent passes evaluation goal
             self.assertTrue(self.define_eval_goal(eval_result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
                 eval_result.accuracy, eval_result.reward))
+
+        @staticmethod
+        def set_seed(seed):
+            """
+            Set random seed.
+
+            :param seed: seed
+            :return: None
+            """
+            random.seed(seed)
+            np.random.seed(seed)
+            torch.manual_seed(seed)
+
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed(seed)

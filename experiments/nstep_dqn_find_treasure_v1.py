@@ -34,17 +34,16 @@ class FindTreasureV1(Experiment):
     def define_goal(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
 
-    def train(self, env, agent):
-        return SyncRunner(env, agent).train(
+    def train(self, env, agent, seed):
+        return SyncRunner(env, agent, seed=seed).train(
             train_episodes=10000,
             eval_episodes=100,
             eval_after=500,
             goal=self.define_goal)
 
-    def eval(self, env, agent):
-        return SyncRunner(env, agent).eval(
+    def eval(self, env, agent, seed):
+        return SyncRunner(env, agent, seed=seed).eval(
             eval_episodes=100)
-
 
 
 if __name__ == "__main__":

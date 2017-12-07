@@ -8,7 +8,7 @@ class SyncRunner(Runner):
     Synchronous runner implementation.
     """
 
-    def __init__(self, env, agent, seed=1):
+    def __init__(self, env, agent, seed=None):
         """
         Initialize runner.
 

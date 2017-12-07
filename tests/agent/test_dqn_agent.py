@@ -32,14 +32,14 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
         return result.accuracy == 100 and result.reward >= 0.90
 
     def train(self, env, agent):
-        return SyncRunner(env, agent, seed=1).train(
+        return SyncRunner(env, agent, self.seed).train(
             train_episodes=1000,
             eval_episodes=100,
             eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
-        return SyncRunner(env, agent, seed=1).eval(
+        return SyncRunner(env, agent, self.seed).eval(
             eval_episodes=100)
 
 
@@ -67,14 +67,14 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
         return result.accuracy == 100 and result.reward >= 0.90
 
     def train(self, env, agent):
-        return SyncRunner(env, agent, seed=1).train(
+        return SyncRunner(env, agent, self.seed).train(
             train_episodes=1000,
             eval_episodes=100,
             eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
-        return SyncRunner(env, agent, seed=1).eval(
+        return SyncRunner(env, agent, self.seed).eval(
             eval_episodes=100)
 
 
@@ -103,14 +103,14 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
         return result.accuracy == 100 and result.reward >= 0.90
 
     def train(self, env, agent):
-        return SyncRunner(env, agent, seed=1).train(
+        return SyncRunner(env, agent, self.seed).train(
             train_episodes=1000,
             eval_episodes=100,
             eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
-        return SyncRunner(env, agent, seed=1).eval(
+        return SyncRunner(env, agent, self.seed).eval(
             eval_episodes=100)
 
 
@@ -139,12 +139,12 @@ class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
         return result.accuracy == 100 and result.reward >= 0.90
 
     def train(self, env, agent):
-        return SyncRunner(env, agent, seed=1).train(
+        return SyncRunner(env, agent, self.seed).train(
             train_episodes=1000,
             eval_episodes=100,
             eval_after=200,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
-        return SyncRunner(env, agent, seed=1).eval(
+        return SyncRunner(env, agent, self.seed).eval(
             eval_episodes=100)

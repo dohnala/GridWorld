@@ -13,7 +13,7 @@ class Runner:
     Runner provides an abstraction for executing agent on given environment.
     """
 
-    def __init__(self, env, agent, seed=1):
+    def __init__(self, env, agent, seed=None):
         """
         Initialize runner.
 

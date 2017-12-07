@@ -15,7 +15,7 @@ class AsyncRunner(Runner):
     Asynchronous runner implementation.
     """
 
-    def __init__(self, env, agent, num_workers, seed=1):
+    def __init__(self, env, agent, num_workers, seed=None):
         """
         Initialize agent.
 
