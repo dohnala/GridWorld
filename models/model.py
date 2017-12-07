@@ -27,6 +27,9 @@ class Model:
         self.network = network
         self.config = config
         self.optimizer = None
+        self.train_mode = None
+
+        self.set_train_mode()
 
     def set_optimizer(self, optimizer):
         """
@@ -98,7 +101,16 @@ class Model:
 
         :return: None
         """
+        self.train_mode = True
         self.network.train()
+
+    def is_train_mode(self):
+        """
+        Return True if model is in train mode.
+
+        :return: True if model is in train mode
+        """
+        return self.train_mode
 
     def set_eval_mode(self):
         """
@@ -106,4 +118,13 @@ class Model:
 
         :return: None
         """
+        self.train_mode = False
         self.network.eval()
+
+    def is_eval_mode(self):
+        """
+        Return True if model is in eval model.
+
+        :return: True if model is in eval model
+        """
+        return not self.train_mode
