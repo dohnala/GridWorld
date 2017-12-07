@@ -1,4 +1,3 @@
-import logging
 import random
 from timeit import default_timer as timer
 
@@ -25,7 +24,6 @@ class Runner:
         self.env = env
         self.agent = agent
         self.seed = seed
-        self.logger = logging.getLogger("root")
 
         if seed:
             self.__set_seed__(self.seed)

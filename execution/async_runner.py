@@ -2,6 +2,7 @@ import copy
 import os
 import time
 from timeit import default_timer as timer
+from utils.logging import logger
 
 import torch.multiprocessing as mp
 
@@ -130,18 +131,18 @@ class AsyncRunner(Runner):
             eval_results.append(result)
 
             # Log evaluation result
-            log_eval_result(self.logger, current_episode, result)
+            log_eval_result(current_episode, result)
 
             # If termination condition passed given evaluation result, finish training
             if goal and goal(result):
-                self.logger.info("")
-                self.logger.info("Termination condition passed")
-                self.logger.info("")
+                logger.info("")
+                logger.info("Termination condition passed")
+                logger.info("")
                 stop_flag.set()
 
             # If agents reached total number of training episodes, finish training
             if workers_finished():
-                self.logger.info("")
+                logger.info("")
                 stop_flag.set()
 
         # Put result to the queue

@@ -1,12 +1,10 @@
 import argparse
-import logging.config
 import os
 
 from env.env import GridWorldEnv
 from execution.average_runner import AverageRunner
 from execution.result import log_average_run_result
-
-logging.config.fileConfig("logging.conf")
+from utils.logging import logger
 
 
 class Experiment:
@@ -16,7 +14,6 @@ class Experiment:
 
     def __init__(self):
         self.parser = self.create_parser()
-        self.logger = logging.getLogger("root")
 
     def define_task(self):
         """
@@ -87,10 +84,10 @@ class Experiment:
             if args.load:
                 if os.path.isfile(args.load):
                     agent.load(args.load)
-                    self.logger.info("Agent loaded from {}".format(args.load))
+                    logger.info("Agent loaded from {}".format(args.load))
                 else:
-                    self.logger.error("Agent couldn't be loaded. File {} doesn't exist".format(args.load))
-                self.logger.info("")
+                    logger.error("Agent couldn't be loaded. File {} doesn't exist".format(args.load))
+                logger.info("")
 
             # Run op and return its result
             return op(env, agent)
@@ -103,8 +100,8 @@ class Experiment:
                 # Saving the agent state
                 if args.save:
                     agent.save(args.save)
-                    self.logger.info("Agent saved to {}".format(args.save))
-                    self.logger.info("")
+                    logger.info("Agent saved to {}".format(args.save))
+                    logger.info("")
 
                 return result
 
@@ -123,12 +120,12 @@ class Experiment:
             # Train agent
             avg_result = AverageRunner(run_train).run(args.runs)
 
-            log_average_run_result(self.logger, avg_result)
+            log_average_run_result(avg_result)
         elif args.eval:
             # Evaluate agent
             avg_result = AverageRunner(run_eval).run(args.runs)
 
-            log_average_run_result(self.logger, avg_result)
+            log_average_run_result(avg_result)
 
     @staticmethod
     def create_parser():

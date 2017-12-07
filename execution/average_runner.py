@@ -1,6 +1,5 @@
-import logging
-
 from execution.result import AverageRunResult, log_run_result
+from utils.logging import logger
 
 
 class AverageRunner:
@@ -15,7 +14,6 @@ class AverageRunner:
         :param run_method: method to run multiple times
         """
         self.run_method = run_method
-        self.logger = logging.getLogger("root")
 
     def run(self, num_runs):
         """
@@ -27,8 +25,8 @@ class AverageRunner:
         results = []
 
         for i in range(num_runs):
-            self.logger.info("# Run {}/{}".format(i + 1, num_runs))
-            self.logger.info("")
+            logger.info("# Run {}/{}".format(i + 1, num_runs))
+            logger.info("")
 
             # Run method
             result = self.run_method()
@@ -36,8 +34,8 @@ class AverageRunner:
             # Store result
             results.append(result)
 
-            log_run_result(self.logger, result)
-            self.logger.info("-" * 150)
+            log_run_result(result)
+            logger.info("-" * 150)
 
         # Create average run result
         result = AverageRunResult(results)

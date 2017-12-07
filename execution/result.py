@@ -1,5 +1,6 @@
 import numpy as np
 from collections import deque
+from utils.logging import logger
 
 
 class TrainEpisodeResult:
@@ -39,7 +40,7 @@ class TrainResult:
         return np.mean(self.losses_per_episode)
     
     
-def log_train_result(logger, result, current_episode, train_episodes):
+def log_train_result(result, current_episode, train_episodes):
     logger.info("Training {:4d}/{} - loss:{:>11f}, accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
         current_episode ,
         train_episodes,
@@ -80,7 +81,7 @@ class EvalResult:
         return np.mean(self.steps_per_episode)
 
 
-def log_eval_result(logger, current_episode, result):
+def log_eval_result(current_episode, result):
     logger.info("Evaluation at {:4d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
         current_episode,
         result.get_accuracy(),
@@ -99,7 +100,7 @@ class RunResult:
         self.eval_time = sum(result.time for result in eval_results)
         
 
-def log_run_result(logger, result):
+def log_run_result(result):
     logger.info("Result - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}, train_time:{:5.2f}s".format(
         result.accuracy,
         result.reward,
@@ -127,7 +128,7 @@ class AverageRunResult:
         return np.mean(self.steps_per_run)
     
 
-def log_average_run_result(logger, result):
+def log_average_run_result(result):
     logger.info("# Run results")
     logger.info("")
 

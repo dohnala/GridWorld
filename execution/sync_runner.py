@@ -1,5 +1,6 @@
 from execution import Runner
 from execution.result import RunResult, log_eval_result
+from utils.logging import logger
 
 
 class SyncRunner(Runner):
@@ -41,21 +42,21 @@ class SyncRunner(Runner):
             eval_result = self.__eval_episodes__(self.env, self.agent, eval_episodes)
 
             # Log evaluation result
-            log_eval_result(self.logger, current_episode, eval_result)
+            log_eval_result(current_episode, eval_result)
 
             # Store evaluation result
             eval_results.append(eval_result)
 
             # If goal is defined and evaluated as True, break loop
             if goal and goal(eval_result):
-                self.logger.info("")
-                self.logger.info("Termination condition passed")
-                self.logger.info("")
+                logger.info("")
+                logger.info("Termination condition passed")
+                logger.info("")
                 break
 
             # If number of episodes exceed total number of training episodes, break loop
             if current_episode >= train_episodes:
-                self.logger.info("")
+                logger.info("")
                 break
 
         # Return run result
