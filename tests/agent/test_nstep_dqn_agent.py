@@ -88,7 +88,7 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
                 policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
                 discount=0.95,
                 n_step=1,
-                target_sync=10))
+                target_sync=500))
 
     def define_train_goal(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
