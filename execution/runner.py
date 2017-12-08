@@ -25,9 +25,6 @@ class Runner:
         self.agent = agent
         self.seed = seed
 
-        if seed:
-            self.__set_seed__(self.seed)
-
     def eval(self, eval_episodes):
         """
         Evaluate agent for given number of episodes.

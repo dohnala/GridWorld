@@ -84,7 +84,7 @@ class Experiment:
             task = self.define_task()
 
             # Create environment
-            env = GridWorldEnv(task, seed=args.seed)
+            env = GridWorldEnv(task)
 
             # Create agent
             agent = self.define_agent(task.width, task.height, len(task.get_actions()))
