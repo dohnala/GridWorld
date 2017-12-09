@@ -5,11 +5,10 @@ from execution import SyncRunner
 from networks import MLP
 from optimizers import AdamOptimizer
 from policies import EpsilonGreedyPolicy
-from tests.agent.test_agent import AgentTestCases
+from tests.agent import AgentTestCases
 
 
 class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
-
     def define_task(self):
         return FindTreasureTask(width=4, height=4, episode_length=20, treasure_position=(2, 3))
 
@@ -44,7 +43,6 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
 
 
 class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
-
     def define_task(self):
         return FindTreasureTask(width=4, height=4, episode_length=20, treasure_position=(2, 3))
 
@@ -79,7 +77,6 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
 
 
 class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
-
     def define_task(self):
         return FindTreasureTask(width=4, height=4, episode_length=20, treasure_position=(2, 3))
 
@@ -115,7 +112,6 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
 
 class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
-
     def define_task(self):
         return FindTreasureTaskV0()
 

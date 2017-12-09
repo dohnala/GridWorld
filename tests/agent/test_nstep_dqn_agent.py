@@ -5,7 +5,7 @@ from execution import SyncRunner
 from networks import MLP
 from optimizers import AdamOptimizer
 from policies import EpsilonGreedyPolicy
-from tests.agent.test_agent import AgentTestCases
+from tests.agent import AgentTestCases
 
 
 class SimpleOneStepDQNAgentTest(AgentTestCases.AgentTestCase):
