@@ -1,16 +1,15 @@
-import numpy as np
-
 import torch.nn as nn
 import torch.nn.functional as F
 
 from networks import Network, NetworkModule
-from networks.nn import NNModule
+from networks.mlp import MLPModule
 
 
 class CNN(Network):
     """
     Convolution neural network architecture.
     """
+
     def __init__(self, hidden_units=None):
         self.hidden_units = hidden_units
 
@@ -25,6 +24,7 @@ class CNNModule(NetworkModule):
     """
     Convolution neural network.
     """
+
     def __init__(self, input_shape, hidden_units=None):
         super(CNNModule, self).__init__(input_shape)
 
@@ -35,7 +35,7 @@ class CNNModule(NetworkModule):
         # Init parameters of conv layer
         self.__init__parameters__(self.conv1)
 
-        self.nn = NNModule(self.__conv_shape_flatten__(width, height, self.conv1), hidden_units)
+        self.nn = MLPModule(self.__conv_shape_flatten__(width, height, self.conv1), hidden_units)
 
     def forward(self, states):
         result = F.leaky_relu(self.conv1(states))

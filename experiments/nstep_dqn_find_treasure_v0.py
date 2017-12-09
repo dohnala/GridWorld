@@ -3,7 +3,7 @@ from encoders import OneHotEncoder
 from env.tasks import FindTreasureTaskV0
 from execution import SyncRunner
 from experiments import Experiment
-from networks import NN
+from networks import MLP
 from optimizers import AdamOptimizer
 from policies import EpsilonGreedyPolicy
 
@@ -25,7 +25,7 @@ class FindTreasureV0(Experiment):
             config=Config(
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
-                network=NN(),
+                network=MLP(),
                 policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
                 discount=0.95,
                 n_step=8,

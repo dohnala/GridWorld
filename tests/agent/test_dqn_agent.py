@@ -2,7 +2,7 @@ from agents import DQNAgent, DQNAgentConfig as Config
 from encoders import OneHotEncoder
 from env.tasks import FindTreasureTask, FindTreasureTaskV0
 from execution import SyncRunner
-from networks import NN
+from networks import MLP
 from optimizers import AdamOptimizer
 from policies import EpsilonGreedyPolicy
 from tests.agent.test_agent import AgentTestCases
@@ -19,7 +19,7 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
             config=Config(
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
-                network=NN(),
+                network=MLP(),
                 policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
                 discount=0.95,
                 capacity=1,
@@ -54,7 +54,7 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
             config=Config(
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
-                network=NN(),
+                network=MLP(),
                 policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
                 discount=0.95,
                 capacity=100,
@@ -89,7 +89,7 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
             config=Config(
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
-                network=NN(),
+                network=MLP(),
                 policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
                 discount=0.95,
                 capacity=1,
@@ -125,7 +125,7 @@ class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
             config=Config(
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.001),
-                network=NN(),
+                network=MLP(),
                 policy=EpsilonGreedyPolicy(1, 0.01, 100),
                 discount=0.95,
                 capacity=1000,
