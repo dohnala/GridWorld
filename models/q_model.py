@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from models import Model, ModelConfig
-from networks import NetworkModule
+from networks import NetworkModule, Network
 
 
 class QModelConfig(ModelConfig):
@@ -23,6 +23,9 @@ class QModelConfig(ModelConfig):
         :param use_cuda: use GPU
         """
         super(QModelConfig, self).__init__(base_network)
+
+        assert type(discount) is float and 0.0 <= discount <= 1.0, "discount has to be float in [0, 1]"
+        assert type(use_cuda) is bool, "use_cuda has to be boolean"
 
         self.discount = discount
         self.use_cuda = use_cuda
@@ -42,6 +45,9 @@ class QNetworkModule(NetworkModule):
         :param base_network: base network
         """
         super(QNetworkModule, self).__init__(input_shape)
+
+        assert type(num_actions) is int and num_actions > 0, "num_actions is not valid"
+        assert isinstance(base_network, Network), "network is not valid"
 
         self.num_actions = num_actions
 
@@ -86,6 +92,11 @@ class QModel(Model):
         super(QModel, self).__init__(
             network=QNetworkModule(input_shape, num_actions, config.base_network),
             config=config)
+
+        if target_sync:
+            assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
+
+        assert isinstance(config, QModelConfig), "config is not valid"
 
         self.steps = 0
         self.discount = config.discount

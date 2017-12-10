@@ -23,6 +23,9 @@ class NStepDQNAgentConfig(NStepAgentConfig, QModelConfig):
         NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step, keep_last=True)
         QModelConfig.__init__(self, network, discount)
 
+        if target_sync:
+            assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
+
         self.target_sync = target_sync
 
 

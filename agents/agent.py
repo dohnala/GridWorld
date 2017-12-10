@@ -4,6 +4,11 @@ import collections
 import numpy as np
 import torch
 
+from encoders import GridWorldEncoder
+from models import Model
+from optimizers import OptimizerCreator
+from policies import ExplorationPolicy
+
 Transition = collections.namedtuple('Transition', 'state action reward next_state done')
 
 
@@ -29,6 +34,11 @@ class AgentConfig:
         :param train_policy: policy used in training phase
         :param eval_policy: policy used in evaluation phase
         """
+        assert isinstance(encoder, GridWorldEncoder), "encoder is not valid"
+        assert isinstance(optimizer, OptimizerCreator), "optimizer is not valid"
+        assert isinstance(train_policy, ExplorationPolicy), "train_policy is not valid"
+        assert isinstance(eval_policy, ExplorationPolicy), "eval_policy is not valid"
+
         self.encoder = encoder
         self.optimizer = optimizer
         self.train_policy = train_policy
@@ -48,6 +58,10 @@ class Agent:
         :param model: model used for action selection and learning
         :param config: agent's configuration
         """
+        assert type(name) is str, "name is not valid"
+        assert isinstance(model, Model), "model is not valid"
+        assert isinstance(config, AgentConfig), "config is not valid"
+
         self.name = name
         self.model = model
         self.config = config

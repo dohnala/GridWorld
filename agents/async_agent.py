@@ -1,4 +1,5 @@
 from agents import Agent
+from models import Model
 
 
 class AsyncAgent(Agent):
@@ -47,6 +48,9 @@ class WorkerAgent(Agent):
         :param shared_model: shared model
         :param kwargs: kwargs
         """
+        assert type(worker_id) is int, "worker_id is not valid"
+        assert isinstance(shared_model, Model), "shared_model is not valud"
+
         self.worker_id = worker_id
         self.shared_model = shared_model
 

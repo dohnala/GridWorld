@@ -1,3 +1,6 @@
+from networks import Network, NetworkModule
+
+
 class ModelConfig:
     """
     Model's configuration.
@@ -9,6 +12,8 @@ class ModelConfig:
 
         :param base_network: base network
         """
+        assert isinstance(base_network, Network), "network is not valid"
+
         self.base_network = base_network
 
 
@@ -24,6 +29,9 @@ class Model:
         :param network: main network used by model
         :param config: model's config
         """
+        assert isinstance(network, NetworkModule), "network is not valid"
+        assert isinstance(config, ModelConfig), "config is not valid"
+
         self.network = network
         self.config = config
         self.optimizer = None

@@ -26,6 +26,9 @@ class DQNAgentConfig(MemoryAgentConfig, QModelConfig):
         MemoryAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), capacity, batch_size)
         QModelConfig.__init__(self, network, discount, use_cuda)
 
+        if target_sync:
+            assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
+
         self.target_sync = target_sync
 
 

@@ -22,12 +22,12 @@ class MemoryAgentConfig(AgentConfig):
         """
         super(MemoryAgentConfig, self).__init__(encoder, optimizer, train_policy, eval_policy)
 
-        assert capacity > 0, "capacity has to be positive"
-        assert batch_size > 0, "batch_size has to be positive"
+        assert type(capacity) is int and capacity > 0, "capacity has to be positive integer"
+        assert type(batch_size) is int and batch_size > 0, "batch_size has to be positive integer"
         assert capacity >= batch_size, "capacity has to be greater or equals than batch_size"
 
         if train_start:
-            assert train_start > 0, "train_start has to be positive"
+            assert type(train_start) is int and train_start > 0, "train_start has to be positive integer"
             assert train_start >= batch_size, "capacity has to be greater or equals than batch_size"
 
         self.capacity = capacity

@@ -19,7 +19,8 @@ class NStepAgentConfig(AgentConfig):
         """
         super(NStepAgentConfig, self).__init__(encoder, optimizer, train_policy, eval_policy)
 
-        assert n_step > 0, "n_step has to be greater than zero"
+        assert type(n_step) is int and n_step > 0, "n_step has to be integer greater than zero"
+        assert type(keep_last) is bool, "keep_last has to be boolean"
 
         self.n_step = n_step
         self.keep_last = keep_last
