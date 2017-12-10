@@ -55,6 +55,9 @@ class Agent:
         self.train_policy = config.train_policy
         self.eval_policy = config.eval_policy
 
+        # Current step
+        self.step = 0
+
         # Current phase the agent is in
         self.current_phase = None
 
@@ -102,6 +105,8 @@ class Agent:
         :param done: if next_state is terminal
         :return None
         """
+        self.step += 1
+
         transition = Transition(
             state=self.__encode_state__(state),
             action=action,
