@@ -26,7 +26,7 @@ class MemoryAgentConfig(AgentConfig):
         assert type(batch_size) is int and batch_size > 0, "batch_size has to be positive integer"
         assert capacity >= batch_size, "capacity has to be greater or equals than batch_size"
 
-        if train_start:
+        if train_start is not None:
             assert type(train_start) is int and train_start > 0, "train_start has to be positive integer"
             assert train_start >= batch_size, "capacity has to be greater or equals than batch_size"
 

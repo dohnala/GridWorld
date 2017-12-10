@@ -27,7 +27,7 @@ class QModelConfig(ModelConfig):
 
         assert type(discount) is float and 0.0 <= discount <= 1.0, "discount has to be float in [0, 1]"
 
-        if target_sync:
+        if target_sync is not None:
             assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
 
         assert type(use_cuda) is bool, "use_cuda has to be boolean"
