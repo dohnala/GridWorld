@@ -31,7 +31,7 @@ class QModelConfig(ModelConfig):
         self.use_cuda = use_cuda
 
 
-class QNetworkModule(NetworkModule):
+class QNetwork(NetworkModule):
     """
     Network module which outputs Q value for each action.
     """
@@ -44,7 +44,7 @@ class QNetworkModule(NetworkModule):
         :param num_actions: number of actions
         :param base_network: base network
         """
-        super(QNetworkModule, self).__init__(input_shape)
+        super(QNetwork, self).__init__(input_shape)
 
         assert type(num_actions) is int and num_actions > 0, "num_actions is not valid"
         assert isinstance(base_network, Network), "network is not valid"
@@ -90,7 +90,7 @@ class QModel(Model):
         :param config: model's config
         """
         super(QModel, self).__init__(
-            network=QNetworkModule(input_shape, num_actions, config.base_network),
+            network=QNetwork(input_shape, num_actions, config.base_network),
             config=config)
 
         if target_sync:
