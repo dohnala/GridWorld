@@ -19,6 +19,8 @@ class NStepAgentConfig(AgentConfig):
         """
         super(NStepAgentConfig, self).__init__(encoder, optimizer, train_policy, eval_policy)
 
+        assert n_step > 0, "n_step has to be greater than zero"
+
         self.n_step = n_step
         self.keep_last = keep_last
 
