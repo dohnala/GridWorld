@@ -40,7 +40,6 @@ class AsyncNStepDQNAgent(AsyncAgent):
             model=NstepQModel(
                 input_shape=config.encoder.shape(),
                 num_actions=num_actions,
-                target_sync=config.target_sync,
                 config=config),
             config=config)
 
@@ -74,7 +73,6 @@ class NStepDQNWorkerAgent(NStepAgent, WorkerAgent):
             model=NstepQModel(
                 input_shape=config.encoder.shape(),
                 num_actions=num_actions,
-                target_sync=config.target_sync,
                 config=config),
             shared_model=shared_model,
             config=config)

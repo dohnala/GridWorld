@@ -14,20 +14,26 @@ class QModelConfig(ModelConfig):
     Q model's configuration.
     """
 
-    def __init__(self, base_network, discount, use_cuda=False):
+    def __init__(self, base_network, discount, target_sync=None, use_cuda=False):
         """
         Initialize configuration.
 
         :param base_network: base network
         :param discount: discount factor
+        :param target_sync: after how many steps target network should be synced
         :param use_cuda: use GPU
         """
         super(QModelConfig, self).__init__(base_network)
 
         assert type(discount) is float and 0.0 <= discount <= 1.0, "discount has to be float in [0, 1]"
+
+        if target_sync:
+            assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
+
         assert type(use_cuda) is bool, "use_cuda has to be boolean"
 
         self.discount = discount
+        self.target_sync = target_sync
         self.use_cuda = use_cuda
 
 
@@ -80,21 +86,17 @@ class QModel(Model):
     Q model used to update parameters using temporal difference error.
     """
 
-    def __init__(self, input_shape, num_actions, target_sync, config):
+    def __init__(self, input_shape, num_actions, config):
         """
         Initialize model.
 
         :param input_shape: shape of input state
         :param num_actions: number of actions
-        :param target_sync: after how many steps target network should be synced
         :param config: model's config
         """
         super(QModel, self).__init__(
             network=QNetwork(input_shape, num_actions, config.base_network),
             config=config)
-
-        if target_sync:
-            assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
 
         assert isinstance(config, QModelConfig), "config is not valid"
 
@@ -108,7 +110,7 @@ class QModel(Model):
             self.network.cuda()
 
         # Create target network as copy of main network if sync is defined
-        if target_sync:
+        if self.target_sync:
             self.target_network = copy.deepcopy(self.network)
 
     def predict(self, states):

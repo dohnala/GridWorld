@@ -21,12 +21,7 @@ class NStepDQNAgentConfig(NStepAgentConfig, QModelConfig):
         :param target_sync: after how many steps target network should be synced
         """
         NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step, keep_last=True)
-        QModelConfig.__init__(self, network, discount)
-
-        if target_sync:
-            assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
-
-        self.target_sync = target_sync
+        QModelConfig.__init__(self, network, discount, target_sync)
 
 
 class NStepDQNAgent(NStepAgent):
@@ -46,6 +41,5 @@ class NStepDQNAgent(NStepAgent):
             model=NstepQModel(
                 input_shape=config.encoder.shape(),
                 num_actions=num_actions,
-                target_sync=config.target_sync,
                 config=config),
             config=config)
