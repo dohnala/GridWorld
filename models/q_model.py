@@ -14,13 +14,14 @@ class QModelConfig(ModelConfig):
     Q model's configuration.
     """
 
-    def __init__(self, base_network, discount, target_sync=None, use_cuda=False):
+    def __init__(self, base_network, discount, target_sync=None, double_q=False, use_cuda=False):
         """
         Initialize configuration.
 
         :param base_network: base network
         :param discount: discount factor
         :param target_sync: after how many steps target network should be synced
+        :param double_q: use double q learning
         :param use_cuda: use GPU
         """
         super(QModelConfig, self).__init__(base_network)
@@ -30,10 +31,14 @@ class QModelConfig(ModelConfig):
         if target_sync is not None:
             assert type(target_sync) is int and target_sync > 0, "target_sync has to be integer greater than zero"
 
+        if double_q:
+            assert target_sync is not None, "target_sync has to be set in order to use double_q"
+
         assert type(use_cuda) is bool, "use_cuda has to be boolean"
 
         self.discount = discount
         self.target_sync = target_sync
+        self.double_q = double_q
         self.use_cuda = use_cuda
 
 
@@ -103,6 +108,7 @@ class QModel(Model):
         self.steps = 0
         self.discount = config.discount
         self.target_sync = config.target_sync
+        self.double_q = config.double_q
         self.use_cuda = config.use_cuda
 
         # Move network to GPU
@@ -216,14 +222,24 @@ class QModel(Model):
             if self.use_cuda:
                 non_terminal_next_states = non_terminal_next_states.cuda()
 
-            # Compute predictions using target network
-            target_pred = self.__get_target_network__()(non_terminal_next_states)
+            # Compute q values of next states using target network
+            q_next = self.__get_target_network__()(non_terminal_next_states).detach()
+
+            # If double q learning should be used
+            if self.double_q:
+                # Find indexes of best actions using main network
+                _, best_indexes = self.network(non_terminal_next_states).detach().max(1)
+
+                # Find values of best actions
+                q_next = q_next.gather(1, best_indexes.unsqueeze(1)).squeeze(1)
+            else:
+                q_next, _ = q_next.max(1)
 
             # Switch volatile back to False, so the loss can be computed
-            target_pred.volatile = False
+            q_next.volatile = False
 
             # Compute targets for non terminal states
-            targets[non_done_mask] = rewards[non_done_mask] + self.discount * target_pred.max(1)[0]
+            targets[non_done_mask] = rewards[non_done_mask] + self.discount * q_next
 
         # Compute targets for terminal states
         targets[done_mask] = rewards[done_mask].detach()

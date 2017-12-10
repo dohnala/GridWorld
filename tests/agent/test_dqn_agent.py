@@ -111,6 +111,42 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
             eval_episodes=100)
 
 
+class DQNAgentWithDoubleQ(AgentTestCases.AgentTestCase):
+    def define_task(self):
+        return FindTreasureTask(width=4, height=4, episode_length=20, treasure_position=(2, 3))
+
+    def define_agent(self, width, height, num_actions):
+        return DQNAgent(
+            num_actions=num_actions,
+            config=Config(
+                encoder=OneHotEncoder(width, height),
+                optimizer=AdamOptimizer(0.01),
+                network=MLP(),
+                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                discount=0.95,
+                capacity=1,
+                batch_size=1,
+                target_sync=10,
+                double_q=True))
+
+    def define_train_goal(self, result):
+        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
+
+    def define_eval_goal(self, result):
+        return result.accuracy == 100 and result.reward >= 0.90
+
+    def train(self, env, agent):
+        return SyncRunner(env, agent, self.seed).train(
+            train_episodes=1000,
+            eval_episodes=100,
+            eval_after=100,
+            goal=self.define_train_goal)
+
+    def eval(self, env, agent):
+        return SyncRunner(env, agent, self.seed).eval(
+            eval_episodes=100)
+
+
 class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
     def define_task(self):
         return FindTreasureTaskV0()

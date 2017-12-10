@@ -30,7 +30,8 @@ class FindTreasureV1(Experiment):
                 discount=0.95,
                 capacity=10000,
                 batch_size=8,
-                target_sync=100))
+                target_sync=100,
+                double_q=True))
 
     def define_goal(self, result):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90

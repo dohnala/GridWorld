@@ -9,7 +9,7 @@ class DQNAgentConfig(MemoryAgentConfig, QModelConfig):
     """
 
     def __init__(self, encoder, optimizer, policy, capacity, batch_size, network, discount,
-                 target_sync=None, use_cuda=False):
+                 target_sync=None, double_q=False, use_cuda=False):
         """
         Initialize configuration.
 
@@ -21,10 +21,11 @@ class DQNAgentConfig(MemoryAgentConfig, QModelConfig):
         :param network: network used by model
         :param discount: discount factor used by model
         :param target_sync: after how many steps target network should be synced
+        :param double_q: use double q learning
         :param use_cuda: use GPU
         """
         MemoryAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), capacity, batch_size)
-        QModelConfig.__init__(self, network, discount, target_sync, use_cuda)
+        QModelConfig.__init__(self, network, discount, target_sync, double_q, use_cuda)
 
 
 class DQNAgent(MemoryAgent):
