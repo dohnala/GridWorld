@@ -4,7 +4,7 @@ from models import Model
 
 class AsyncAgent(Agent):
     """
-    Agent which is trained by asynchronous workers which share model.
+    Agent which can be trained by asynchronous workers which share main model.
     """
 
     def __init__(self, **kwargs):
@@ -13,9 +13,6 @@ class AsyncAgent(Agent):
         # Move model parameters to shared memory
         self.model.share_memory()
 
-    def observe(self, state, action, reward, next_state, done):
-        pass
-
     def create_workers(self, num_workers):
         """
         Create given number of workers.
@@ -23,13 +20,14 @@ class AsyncAgent(Agent):
         :param num_workers: number of workers
         :return: list of workers
         """
-        return [self.__create_worker__(i) for i in range(num_workers)]
+        return [self.__create_worker__(i, self.model) for i in range(num_workers)]
 
-    def __create_worker__(self, worker_id):
+    def __create_worker__(self, worker_id, shared_model):
         """
         Create a worker.
 
         :param worker_id: worker id
+        :param shared_model shared model
         :return: worker
         """
         pass
@@ -60,6 +58,7 @@ class WorkerAgent(Agent):
         self.__copy_shared_model__()
 
     def __create_optimizer__(self, optimizer_creator):
+        # Create optimizer to update shared model's parameters
         return optimizer_creator.create(self.shared_model.parameters())
 
     def __update_model__(self, transitions):
