@@ -14,8 +14,8 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return DQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -48,8 +48,8 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return DQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -82,8 +82,8 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return DQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -117,8 +117,8 @@ class DQNAgentWithDoubleQ(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return DQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -153,8 +153,8 @@ class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return DQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.001),
                 network=MLP(),

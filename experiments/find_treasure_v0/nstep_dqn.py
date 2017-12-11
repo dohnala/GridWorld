@@ -21,8 +21,8 @@ class FindTreasureV0(Experiment):
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),

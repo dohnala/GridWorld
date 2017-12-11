@@ -14,8 +14,8 @@ class SimpleOneStepDQNAgentTest(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -47,8 +47,8 @@ class SimpleNStepDQNAgentTest(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -80,8 +80,8 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
@@ -114,8 +114,8 @@ class NStepDQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
 
     def define_agent(self, width, height, num_actions):
         return NStepDQNAgent(
-            num_actions=num_actions,
             config=Config(
+                num_actions=num_actions,
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),

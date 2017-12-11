@@ -14,17 +14,20 @@ class QModelConfig(ModelConfig):
     Q model's configuration.
     """
 
-    def __init__(self, base_network, discount, target_sync=None, double_q=False, use_cuda=False):
+    def __init__(self, input_shape, num_actions, base_network, discount, target_sync=None, double_q=False,
+                 use_cuda=False):
         """
         Initialize configuration.
 
+        :param input_shape input shape
+        :param num_actions number of actions
         :param base_network: base network
         :param discount: discount factor
         :param target_sync: after how many steps target network should be synced
         :param double_q: use double q learning
         :param use_cuda: use GPU
         """
-        super(QModelConfig, self).__init__(base_network)
+        super(QModelConfig, self).__init__(input_shape, num_actions, base_network)
 
         assert type(discount) is float and 0.0 <= discount <= 1.0, "discount has to be float in [0, 1]"
 
@@ -91,16 +94,14 @@ class QModel(Model):
     Q model used to update parameters using temporal difference error.
     """
 
-    def __init__(self, input_shape, num_actions, config):
+    def __init__(self, config):
         """
         Initialize model.
 
-        :param input_shape: shape of input state
-        :param num_actions: number of actions
         :param config: model's config
         """
         super(QModel, self).__init__(
-            network=QNetwork(input_shape, num_actions, config.base_network),
+            network=QNetwork(config.input_shape, config.num_actions, config.base_network),
             config=config)
 
         assert isinstance(config, QModelConfig), "config is not valid"

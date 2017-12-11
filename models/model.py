@@ -6,14 +6,19 @@ class ModelConfig:
     Model's configuration.
     """
 
-    def __init__(self, base_network):
+    def __init__(self, input_shape, num_actions, base_network):
         """
         Initialize configuration.
 
+        :param input_shape input shape
+        :param num_actions number of actions
         :param base_network: base network
         """
+        assert type(num_actions) is int and num_actions > 0, "num_actions has to be integer greater than zero"
         assert isinstance(base_network, Network), "network is not valid"
 
+        self.input_shape = input_shape
+        self.num_actions = num_actions
         self.base_network = base_network
 
 
