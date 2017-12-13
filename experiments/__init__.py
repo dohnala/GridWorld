@@ -47,22 +47,22 @@ class Experiment:
         """
         return False
 
-    def train(self, env, agent, seed):
+    def train(self, env_fn, agent, seed):
         """
         Train given agent on given environment and return result.
 
-        :param env: environment
+        :param env_fn: function to create environment
         :param agent: agent
         :param seed: random seed
         :return: result
         """
         pass
 
-    def eval(self, env, agent, seed):
+    def eval(self, env_fn, agent, seed):
         """
         Evaluate given agent on given environment and return result.
 
-        :param env: environment
+        :param env_fn: function to create environment
         :param agent: agent
         :param seed: random seed
         :return: result
@@ -83,9 +83,6 @@ class Experiment:
             # Create task
             task = self.define_task()
 
-            # Create environment
-            env = GridWorldEnv(task)
-
             # Create agent
             agent = self.define_agent(task.width, task.height, len(task.get_actions()))
 
@@ -102,7 +99,7 @@ class Experiment:
                 logger.info("")
 
             # Run op and return its result
-            return op(env, agent)
+            return op(lambda: GridWorldEnv(task), agent)
 
         def run_train():
             def train_op(env, agent):

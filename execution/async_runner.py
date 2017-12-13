@@ -15,16 +15,16 @@ class AsyncRunner(Runner):
     Asynchronous runner implementation.
     """
 
-    def __init__(self, env, agent, num_workers, seed=None):
+    def __init__(self, env_fn, agent, num_workers, seed=None):
         """
         Initialize agent.
 
-        :param env: environment
+        :param env_fn: function to create environment
         :param agent: agent
         :param num_workers: number of workers
         :param seed: random seed
         """
-        super(AsyncRunner, self).__init__(env, agent, seed)
+        super(AsyncRunner, self).__init__(env_fn, agent, seed)
 
         self.num_workers = num_workers
 
@@ -59,15 +59,16 @@ class AsyncRunner(Runner):
         start = timer()
 
         # Create evaluation process
-        p = mp.Process(target=self.__eval__, args=(self.env, self.agent, max_steps, eval_every_sec, eval_episodes,
-                                                   goal, stop_flag, workers_steps, result_queue))
+        p = mp.Process(target=self.__eval__, args=(CloudpickleWrapper(self.env_fn), self.agent, max_steps,
+                                                   eval_every_sec, eval_episodes, goal, stop_flag, workers_steps,
+                                                   result_queue))
         p.start()
         processes.append(p)
 
         # Create worker processes
         for worker in self.agent.create_workers(self.num_workers):
-            p = mp.Process(target=self.__train_worker__, args=(self.env, worker, workers_max_steps, stop_flag,
-                                                               workers_steps))
+            p = mp.Process(target=self.__train_worker__, args=(CloudpickleWrapper(self.env_fn), worker,
+                                                               workers_max_steps, stop_flag, workers_steps))
             p.start()
             processes.append(p)
 
@@ -81,24 +82,27 @@ class AsyncRunner(Runner):
 
         return result
 
-    def __train_worker__(self, env, worker, max_steps, stop_flag, workers_steps, batch_steps=10):
+    def __train_worker__(self, env_fn_wrapper, worker, max_steps, stop_flag, workers_steps, batch_steps=10):
 
         # Set random seed for this process
         if self.seed:
             self.__set_seed__(self.seed + worker.worker_id)
 
-            # Initialize worker's current step
-            workers_steps[worker.worker_id] = 0
+        # Create environment
+        env = env_fn_wrapper.o()
+
+        # Initialize worker's current step
+        workers_steps[worker.worker_id] = 0
 
         # Train until stop flag is set or number of training steps is reached
         while not stop_flag.is_set() and workers_steps[worker.worker_id] < max_steps:
             # Train worker for batch steps
-            self.__train_steps__(self.env, self.agent, batch_steps)
+            self.__train_steps__(env, worker, batch_steps)
 
             # Update worker's progress
             workers_steps[worker.worker_id] += batch_steps
 
-    def __eval__(self, env, agent, max_steps, eval_every_sec, eval_episodes, goal, stop_flag,
+    def __eval__(self, env_fn_wrapper, agent, max_steps, eval_every_sec, eval_episodes, goal, stop_flag,
                  workers_progress, result_queue):
 
         # Return True if all workers have finished training
@@ -119,6 +123,9 @@ class AsyncRunner(Runner):
         # Set random seed for this process
         if self.seed:
             self.__set_seed__(self.seed + self.num_workers)
+
+        # Create environment
+        env = env_fn_wrapper.o()
 
         # Create eval agent
         eval_agent = copy.deepcopy(agent)
@@ -158,3 +165,20 @@ class AsyncRunner(Runner):
 
         # Put result to the queue
         result_queue.put(RunResult([], eval_results))
+
+
+class CloudpickleWrapper(object):
+    """
+    Uses cloudpickle to serialize object (otherwise multiprocessing tries to use pickle).
+    """
+
+    def __init__(self, o):
+        self.o = o
+
+    def __getstate__(self):
+        import cloudpickle
+        return cloudpickle.dumps(self.x)
+
+    def __setstate__(self, ob):
+        import pickle
+        self.x = pickle.loads(ob)

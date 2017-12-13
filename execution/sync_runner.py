@@ -8,15 +8,15 @@ class SyncRunner(Runner):
     Synchronous runner implementation.
     """
 
-    def __init__(self, env, agent, seed=None):
+    def __init__(self, env_fn, agent, seed=None):
         """
         Initialize runner.
 
-        :param env: environment
+        :param env_fn: function to create environment
         :param agent: agent
         :param seed: random seed
         """
-        super(SyncRunner, self).__init__(env, agent, seed)
+        super(SyncRunner, self).__init__(env_fn, agent, seed)
 
     def train(self, max_steps, eval_every_steps, eval_episodes, goal=None):
         """
@@ -28,6 +28,8 @@ class SyncRunner(Runner):
         :param goal: goal which can terminate training if it is reached
         :return: result
         """
+        # Create environment
+        env = self.env_fn()
 
         train_results = []
         eval_results = []
@@ -39,10 +41,10 @@ class SyncRunner(Runner):
             num_steps = eval_every_steps if remaining_steps > eval_every_steps else remaining_steps
 
             # Reset environment
-            self.env.reset()
+            env.reset()
 
             # Train agent
-            train_result = self.__train_steps__(self.env, self.agent, num_steps)
+            train_result = self.__train_steps__(env, self.agent, num_steps)
 
             # Store training result
             train_results.append(train_result)
@@ -51,7 +53,7 @@ class SyncRunner(Runner):
             current_step += num_steps
 
             # Evaluate agent
-            eval_result = self.__eval_episodes__(self.env, self.agent, eval_episodes)
+            eval_result = self.__eval_episodes__(env, self.agent, eval_episodes)
 
             # Log evaluation result
             log_eval_result(current_step, eval_result)

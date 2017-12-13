@@ -13,15 +13,15 @@ class Runner:
     Runner provides an abstraction for executing agent on given environment.
     """
 
-    def __init__(self, env, agent, seed=None):
+    def __init__(self, env_fn, agent, seed=None):
         """
         Initialize runner.
 
-        :param env: environment
+        :param env_fn: function to create environment
         :param agent: agent
         :param seed: random seed
         """
-        self.env = env
+        self.env_fn = env_fn
         self.agent = agent
         self.seed = seed
 
@@ -32,7 +32,7 @@ class Runner:
         :param eval_episodes: number of evaluating episodes
         :return: result
         """
-        eval_result = self.__eval_episodes__(self.env, self.agent, eval_episodes)
+        eval_result = self.__eval_episodes__(self.env_fn(), self.agent, eval_episodes)
 
         return RunResult([], [eval_result])
 

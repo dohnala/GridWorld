@@ -29,15 +29,15 @@ class SimpleOneStepDQNAgentTest(AgentTestCases.AgentTestCase):
     def define_eval_goal(self, result):
         return result.accuracy == 100 and result.reward >= 0.90
 
-    def train(self, env, agent):
-        return SyncRunner(env, agent, self.seed).train(
+    def train(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).train(
             max_steps=5000,
             eval_every_steps=1000,
             eval_episodes=100,
             goal=self.define_train_goal)
 
-    def eval(self, env, agent):
-        return SyncRunner(env, agent, self.seed).eval(
+    def eval(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).eval(
             eval_episodes=100)
 
 
@@ -62,15 +62,15 @@ class SimpleNStepDQNAgentTest(AgentTestCases.AgentTestCase):
     def define_eval_goal(self, result):
         return result.accuracy == 100 and result.reward >= 0.90
 
-    def train(self, env, agent):
-        return SyncRunner(env, agent, self.seed).train(
+    def train(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).train(
             max_steps=5000,
             eval_every_steps=1000,
             eval_episodes=100,
             goal=self.define_train_goal)
 
-    def eval(self, env, agent):
-        return SyncRunner(env, agent, self.seed).eval(
+    def eval(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).eval(
             eval_episodes=100)
 
 
@@ -96,15 +96,15 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
     def define_eval_goal(self, result):
         return result.accuracy == 100 and result.reward >= 0.90
 
-    def train(self, env, agent):
-        return SyncRunner(env, agent, self.seed).train(
+    def train(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).train(
             max_steps=5000,
             eval_every_steps=1000,
             eval_episodes=100,
             goal=self.define_train_goal)
 
-    def eval(self, env, agent):
-        return SyncRunner(env, agent, self.seed).eval(
+    def eval(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).eval(
             eval_episodes=100)
 
 
@@ -130,13 +130,13 @@ class NStepDQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
     def define_eval_goal(self, result):
         return result.accuracy == 100 and result.reward >= 0.90
 
-    def train(self, env, agent):
-        return SyncRunner(env, agent, self.seed).train(
+    def train(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).train(
             max_steps=5000,
             eval_every_steps=1000,
             eval_episodes=100,
             goal=self.define_train_goal)
 
-    def eval(self, env, agent):
-        return SyncRunner(env, agent, self.seed).eval(
+    def eval(self, env_fn, agent):
+        return SyncRunner(env_fn, agent, self.seed).eval(
             eval_episodes=100)
