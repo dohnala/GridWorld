@@ -21,7 +21,7 @@ class DQNAgentConfig(MemoryAgentConfig, QModelConfig):
         :param batch_size: batch used to sample transitions from memory
         :param network: network used by model
         :param discount: discount factor used by model
-        :param target_sync: after how many steps target network should be synced
+        :param target_sync: after how many updates target network should be synced
         :param double_q: use double q learning
         :param use_cuda: use GPU
         """

@@ -2,12 +2,12 @@ import copy
 import os
 import time
 from timeit import default_timer as timer
-from utils.logging import logger
 
 import torch.multiprocessing as mp
 
 from execution import Runner
-from execution.result import RunResult, TrainResult, log_eval_result
+from execution.result import RunResult, log_eval_result
+from utils.logging import logger
 
 
 class AsyncRunner(Runner):
@@ -28,7 +28,16 @@ class AsyncRunner(Runner):
 
         self.num_workers = num_workers
 
-    def train(self, train_episodes, eval_episodes, eval_after_sec, goal=None):
+    def train(self, max_steps, eval_every_sec, eval_episodes, goal=None):
+        """
+        Train agent for given number of steps.
+
+        :param max_steps: maximum steps to train agent
+        :param eval_every_sec: evaluate agent every `eval_every_sec` seconds
+        :param eval_episodes: number of episode to evaluate agent for
+        :param goal: goal which can terminate training if it is reached
+        :return: result
+        """
 
         # Set one thread per core
         os.environ['OMP_NUM_THREADS'] = '1'
@@ -36,8 +45,11 @@ class AsyncRunner(Runner):
         # Flag indicating that training is finished
         stop_flag = mp.Event()
 
-        # Array with all workers' progress
-        workers_progress = mp.Array('i', self.num_workers)
+        # Max number of steps for each worker
+        workers_max_steps = int(max_steps / self.num_workers)
+
+        # Array with workers' current steps
+        workers_steps = mp.Array('i', self.num_workers)
 
         # Queue where the final result is put
         result_queue = mp.Queue()
@@ -47,15 +59,15 @@ class AsyncRunner(Runner):
         start = timer()
 
         # Create evaluation process
-        p = mp.Process(target=self.__eval__, args=(self.env, self.agent, train_episodes, eval_episodes, eval_after_sec,
-                                                   goal, stop_flag, workers_progress, result_queue))
+        p = mp.Process(target=self.__eval__, args=(self.env, self.agent, max_steps, eval_every_sec, eval_episodes,
+                                                   goal, stop_flag, workers_steps, result_queue))
         p.start()
         processes.append(p)
 
         # Create worker processes
         for worker in self.agent.create_workers(self.num_workers):
-            p = mp.Process(target=self.__train_worker__, args=(self.env, worker, train_episodes, stop_flag,
-                                                               workers_progress))
+            p = mp.Process(target=self.__train_worker__, args=(self.env, worker, workers_max_steps, stop_flag,
+                                                               workers_steps))
             p.start()
             processes.append(p)
 
@@ -69,29 +81,29 @@ class AsyncRunner(Runner):
 
         return result
 
-    def __train_worker__(self, env, worker, train_episodes, stop_flag, workers_progress, batch=10):
+    def __train_worker__(self, env, worker, max_steps, stop_flag, workers_steps, batch_steps=10):
 
         # Set random seed for this process
         if self.seed:
             self.__set_seed__(self.seed + worker.worker_id)
 
-            # Initialize worker's progress
-            workers_progress[worker.worker_id] = 0
+            # Initialize worker's current step
+            workers_steps[worker.worker_id] = 0
 
-        # Train until stop flag is set or number of training episodes is reached
-        while not stop_flag.is_set() and workers_progress[worker.worker_id] < train_episodes:
-            # Train worker for batch episode
-            self.__train_episodes__(env, worker, batch)
+        # Train until stop flag is set or number of training steps is reached
+        while not stop_flag.is_set() and workers_steps[worker.worker_id] < max_steps:
+            # Train worker for batch steps
+            self.__train_steps__(self.env, self.agent, batch_steps)
 
             # Update worker's progress
-            workers_progress[worker.worker_id] += batch
+            workers_steps[worker.worker_id] += batch_steps
 
-    def __eval__(self, env, agent, train_episodes, eval_episodes, eval_after_sec, goal, stop_flag,
+    def __eval__(self, env, agent, max_steps, eval_every_sec, eval_episodes, goal, stop_flag,
                  workers_progress, result_queue):
 
         # Return True if all workers have finished training
         def workers_finished():
-            return all(workers_progress[worker_id] >= train_episodes for worker_id in range(len(workers_progress)))
+            return sum(workers_progress) >= max_steps
 
         # Sleep while checking if workers already finished training
         def wait_for_eval():
@@ -101,7 +113,7 @@ class AsyncRunner(Runner):
                 time.sleep(1)
                 seconds += 1
 
-                if workers_finished() or seconds >= eval_after_sec:
+                if workers_finished() or seconds >= eval_every_sec:
                     break
 
         # Set random seed for this process
@@ -111,15 +123,14 @@ class AsyncRunner(Runner):
         # Create eval agent
         eval_agent = copy.deepcopy(agent)
 
-        train_result = TrainResult(100)
         eval_results = []
 
         while not stop_flag.is_set():
             # Wait for evaluation
             wait_for_eval()
 
-            # Find out current episode
-            current_episode = sum(workers_progress)
+            # Find out current step
+            current_step = sum(workers_progress)
 
             # Copy current agent's state to eval agent
             eval_agent.model.load_state_dict(agent.model.state_dict())
@@ -131,7 +142,7 @@ class AsyncRunner(Runner):
             eval_results.append(result)
 
             # Log evaluation result
-            log_eval_result(current_episode, result)
+            log_eval_result(current_step, result)
 
             # If termination condition passed given evaluation result, finish training
             if goal and goal(result):
@@ -140,10 +151,10 @@ class AsyncRunner(Runner):
                 logger.info("")
                 stop_flag.set()
 
-            # If agents reached total number of training episodes, finish training
+            # If workers reached total number of training steps, finish training
             if workers_finished():
                 logger.info("")
                 stop_flag.set()
 
         # Put result to the queue
-        result_queue.put(RunResult([train_result], eval_results))
+        result_queue.put(RunResult([], eval_results))

@@ -26,7 +26,7 @@ class FindTreasureV1(Experiment):
                 encoder=LayerEncoder(width, height, treasure_position=True),
                 optimizer=AdamOptimizer(0.001),
                 network=CNN(hidden_units=[128]),
-                policy=EpsilonGreedyPolicy(1, 0.01, 2000),
+                policy=EpsilonGreedyPolicy(1, 0.01, 50000),
                 discount=0.95,
                 capacity=10000,
                 batch_size=8,
@@ -38,9 +38,9 @@ class FindTreasureV1(Experiment):
 
     def train(self, env, agent, seed):
         return SyncRunner(env, agent, seed=seed).train(
-            train_episodes=10000,
+            max_steps=100000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_goal)
 
     def eval(self, env, agent, seed):

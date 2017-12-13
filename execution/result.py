@@ -3,42 +3,11 @@ from collections import deque
 from utils.logging import logger
 
 
-class TrainEpisodeResult:
-    def __init__(self, reward, steps, has_won, loss):
-        self.reward = reward
-        self.steps = steps
-        self.has_won = has_won
-        self.loss = loss
-
-
 class TrainResult:
-    def __init__(self, rolling_mean_window):
-        self.num_episodes = 0
-        self.rewards_per_episode = deque(maxlen=rolling_mean_window)
-        self.steps_per_episode = deque(maxlen=rolling_mean_window)
-        self.wins = deque(maxlen=rolling_mean_window)
-        self.losses_per_episode = deque(maxlen=rolling_mean_window)
-        self.time = 0
+    def __init__(self, steps, time):
+        self.steps = steps
+        self.time = time
 
-    def add_result(self, train_episode_result):
-        self.num_episodes += 1
-        self.rewards_per_episode.append(train_episode_result.reward)
-        self.steps_per_episode.append(train_episode_result.steps)
-        self.wins.append(1 if train_episode_result.has_won else 0)
-        self.losses_per_episode.append(train_episode_result.loss)
-
-    def get_accuracy(self):
-        return 100.0 * (sum(self.wins) / len(self.wins))
-
-    def get_mean_reward(self):
-        return np.mean(self.rewards_per_episode)
-
-    def get_mean_steps(self):
-        return np.mean(self.steps_per_episode)
-
-    def get_mean_loss(self):
-        return np.mean(self.losses_per_episode)
-    
     
 def log_train_result(result, current_episode, train_episodes):
     logger.info("Training {:4d}/{} - loss:{:>11f}, accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
@@ -81,9 +50,9 @@ class EvalResult:
         return np.mean(self.steps_per_episode)
 
 
-def log_eval_result(current_episode, result):
+def log_eval_result(current_step, result):
     logger.info("Evaluation at {:4d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
-        current_episode,
+        current_step,
         result.get_accuracy(),
         result.get_mean_reward(),
         result.get_mean_steps()))
@@ -91,7 +60,7 @@ def log_eval_result(current_episode, result):
 
 class RunResult:
     def __init__(self, train_results, eval_results):
-        self.train_episodes = sum(result.num_episodes for result in train_results)
+        self.train_steps = sum(result.steps for result in train_results)
         self.eval_episodes = eval_results[-1].num_episodes
         self.accuracy = eval_results[-1].get_accuracy()
         self.reward = eval_results[-1].get_mean_reward()

@@ -1,5 +1,5 @@
-from enum import Enum
 import collections
+from enum import Enum
 
 import numpy as np
 import torch
@@ -104,7 +104,7 @@ class Agent:
         action_values = self.model.predict(states)[0]
 
         # Select an action using policy
-        action = self.current_policy.select_action(action_values)
+        action = self.current_policy.select_action(action_values, self.step)
 
         return action
 
@@ -129,10 +129,6 @@ class Agent:
             done=done)
 
         self.__observe_transition__(transition)
-
-        # Update current policy
-        if done:
-            self.current_policy.update()
 
     def save(self, file):
         """

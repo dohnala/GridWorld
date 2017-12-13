@@ -37,12 +37,12 @@ class FindTreasureTask(GridWorldTask):
     def generate_grid_world(self):
         grid_world = GridWorld(self.width, self.height)
 
-        grid_world.add_agent(Agent(*grid_world.get_random_free_position()))
-
         if self.treasure_position:
             grid_world.add_object(Treasure(*self.treasure_position))
         else:
             grid_world.add_object(Treasure(*grid_world.get_random_free_position()))
+
+        grid_world.add_agent(Agent(*grid_world.get_random_free_position()))
 
         return grid_world
 

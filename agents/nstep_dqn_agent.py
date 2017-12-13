@@ -19,7 +19,7 @@ class NStepDQNAgentConfig(NStepAgentConfig, QModelConfig):
         :param n_step: how many steps are stored before updating the model
         :param network: network used by model
         :param discount: discount factor used by model
-        :param target_sync: after how many steps target network should be synced
+        :param target_sync: after how many updates target network should be synced
         """
         NStepAgentConfig.__init__(self, encoder, optimizer, policy, GreedyPolicy(), n_step, keep_last=True)
         QModelConfig.__init__(self, encoder.shape(), num_actions, network, discount, target_sync)

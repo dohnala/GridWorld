@@ -19,7 +19,7 @@ class SimpleOneStepDQNAgentTest(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 1000),
                 discount=0.95,
                 n_step=1))
 
@@ -31,9 +31,9 @@ class SimpleOneStepDQNAgentTest(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=5000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -52,7 +52,7 @@ class SimpleNStepDQNAgentTest(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 1000),
                 discount=0.95,
                 n_step=8))
 
@@ -64,9 +64,9 @@ class SimpleNStepDQNAgentTest(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=5000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -85,7 +85,7 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 1000),
                 discount=0.95,
                 n_step=1,
                 target_sync=500))
@@ -98,9 +98,9 @@ class SimpleDQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=5000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -119,22 +119,22 @@ class NStepDQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 1500),
                 discount=0.95,
                 n_step=8,
                 target_sync=10))
 
     def define_train_goal(self, result):
-        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.95
+        return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.93
 
     def define_eval_goal(self, result):
         return result.accuracy == 100 and result.reward >= 0.90
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=5000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):

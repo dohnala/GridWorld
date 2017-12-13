@@ -26,7 +26,7 @@ class FindTreasureV0(Experiment):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.001),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(1, 0.01, 100),
+                policy=EpsilonGreedyPolicy(1, 0.01, 2000),
                 discount=0.95,
                 capacity=1000,
                 batch_size=32,
@@ -37,9 +37,9 @@ class FindTreasureV0(Experiment):
 
     def train(self, env, agent, seed):
         return SyncRunner(env, agent, seed=seed).train(
-            train_episodes=2000,
+            max_steps=5000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=200,
             goal=self.define_goal)
 
     def eval(self, env, agent, seed):

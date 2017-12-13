@@ -23,7 +23,7 @@ class QModelConfig(ModelConfig):
         :param num_actions number of actions
         :param base_network: base network
         :param discount: discount factor
-        :param target_sync: after how many steps target network should be synced
+        :param target_sync: after how many updates target network should be synced
         :param double_q: use double q learning
         :param use_cuda: use GPU
         """
@@ -106,7 +106,7 @@ class QModel(Model):
 
         assert isinstance(config, QModelConfig), "config is not valid"
 
-        self.steps = 0
+        self.updates = 0
         self.discount = config.discount
         self.target_sync = config.target_sync
         self.double_q = config.double_q
@@ -174,11 +174,11 @@ class QModel(Model):
         # Perform optimization step to update parameter w.r.t given loss
         self.optimizer.step(loss, self.parameters())
 
-        # Update steps
-        self.steps += 1
+        # Increment number of updates
+        self.updates += 1
 
         # Sync target network with main network
-        if self.target_sync and self.steps % self.target_sync == 0:
+        if self.target_sync and self.updates % self.target_sync == 0:
             self.__sync_target_network__()
 
         return loss.data.cpu().numpy()[0]

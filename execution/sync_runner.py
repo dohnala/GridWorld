@@ -18,31 +18,43 @@ class SyncRunner(Runner):
         """
         super(SyncRunner, self).__init__(env, agent, seed)
 
-    def train(self, train_episodes, eval_episodes, eval_after, goal=None):
+    def train(self, max_steps, eval_every_steps, eval_episodes, goal=None):
+        """
+        Train agent for given number of steps.
+
+        :param max_steps: maximum steps to train agent
+        :param eval_every_steps: evaluate agent every `eval_every_steps` steps
+        :param eval_episodes: number of episode to evaluate agent for
+        :param goal: goal which can terminate training if it is reached
+        :return: result
+        """
 
         train_results = []
         eval_results = []
 
-        current_episode = 0
+        current_step = 0
 
         while True:
-            remaining_episodes = train_episodes - current_episode
-            num_episodes = eval_after if remaining_episodes > eval_after else remaining_episodes
+            remaining_steps = max_steps - current_step
+            num_steps = eval_every_steps if remaining_steps > eval_every_steps else remaining_steps
 
-            # Run training phase
-            train_result = self.__train_episodes__(self.env, self.agent, num_episodes)
+            # Reset environment
+            self.env.reset()
+
+            # Train agent
+            train_result = self.__train_steps__(self.env, self.agent, num_steps)
 
             # Store training result
             train_results.append(train_result)
 
-            # Update episodes
-            current_episode += num_episodes
+            # Update steps
+            current_step += num_steps
 
-            # Run evaluation phase
+            # Evaluate agent
             eval_result = self.__eval_episodes__(self.env, self.agent, eval_episodes)
 
             # Log evaluation result
-            log_eval_result(current_episode, eval_result)
+            log_eval_result(current_step, eval_result)
 
             # Store evaluation result
             eval_results.append(eval_result)
@@ -54,8 +66,8 @@ class SyncRunner(Runner):
                 logger.info("")
                 break
 
-            # If number of episodes exceed total number of training episodes, break loop
-            if current_episode >= train_episodes:
+            # If number of steps exceed total number of training steps, break loop
+            if current_step >= max_steps:
                 logger.info("")
                 break
 

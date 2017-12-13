@@ -15,12 +15,12 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.assertEqual(9, start_state.width)
         self.assertEqual(9, start_state.height)
 
-        self.assertEqual(2, start_state.agent.x)
+        self.assertEqual(4, start_state.agent.x)
         self.assertEqual(1, start_state.agent.y)
 
         treasure = start_state.get_object_by_type(Treasure)
 
-        self.assertEqual(4, treasure.x)
+        self.assertEqual(2, treasure.x)
         self.assertEqual(1, treasure.y)
 
     def test_get_actions(self):
@@ -35,18 +35,18 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.assertEqual(0, state.step)
 
     def test_positive_goal(self):
-        # (2, 1)
+        # (4, 1)
 
-        reward, _, done = self.env.step(2)
+        reward, _, done = self.env.step(3)
         self.assertFalse(done)
         self.assertEqual(-0.01, reward)
         # (3, 1)
 
-        reward, next_state, done = self.env.step(2)
+        reward, next_state, done = self.env.step(3)
         self.assertTrue(done)
         self.assertEqual(1, reward)
         self.assertEqual(2, next_state.step)
-        self.assertEqual(4, next_state.agent.x)
+        self.assertEqual(2, next_state.agent.x)
         self.assertEqual(1, next_state.agent.y)
 
     def test_negative_goal(self):
@@ -59,5 +59,5 @@ class FindTreasureTaskTest(unittest.TestCase):
         self.assertTrue(done)
         self.assertEqual(-0.01, reward)
         self.assertEqual(60, next_state.step)
-        self.assertEqual(2, next_state.agent.x)
+        self.assertEqual(4, next_state.agent.x)
         self.assertEqual(1, next_state.agent.y)

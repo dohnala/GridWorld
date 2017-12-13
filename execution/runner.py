@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 from agents.agent import RunPhase
-from execution.result import TrainEpisodeResult, EvalEpisodeResult, EvalResult, TrainResult, RunResult
+from execution.result import EvalEpisodeResult, EvalResult, RunResult, TrainResult
 
 
 class Runner:
@@ -37,60 +37,44 @@ class Runner:
         return RunResult([], [eval_result])
 
     @staticmethod
-    def __train_episode__(env, agent):
+    def __train_step__(env, agent):
         """
-        Train given agent on given environment for one episode.
+        Train given agent on given environment for one step.
 
         :param env: environment
         :param agent: agent
-        :return: train episode result
+        :return: None
         """
-        episode_reward = 0
+        state = env.state
 
-        # Reset an environment before episode
-        state = env.reset()
+        # Get agent's action
+        action = agent.act(state, RunPhase.TRAIN)
 
-        while not env.is_terminal():
-            # Get agent's action
-            action = agent.act(state, RunPhase.TRAIN)
+        # Execute given action in environment
+        reward, next_state, done = env.step(action)
 
-            # Execute given action in environment
-            reward, next_state, done = env.step(action)
+        # Pass observed transition to the agent
+        agent.observe(state, action, reward, next_state, done)
 
-            # Pass observed transition to the agent
-            agent.observe(state, action, reward, next_state, done)
+        # Reset environment when episode ends
+        if done:
+            env.reset()
 
-            episode_reward += reward
-
-            # Update state
-            state = next_state
-
-        # Return episode result
-        return TrainEpisodeResult(
-            reward=episode_reward,
-            steps=env.state.step,
-            has_won=env.has_won(),
-            loss=agent.last_loss)
-
-    def __train_episodes__(self, env, agent, num_episodes):
+    def __train_steps__(self, env, agent, num_steps):
         """
-        Train given agent on given environment for one episode.
+        Train given agent on given environment for number of steps.
 
         :param env: environment
         :param agent: agent
-        :param num_episodes: number of episodes
+        :param num_steps: number of steps
         :return: train result
         """
         start = timer()
 
-        result = TrainResult(num_episodes)
+        for step in range(num_steps):
+            self.__train_step__(env, agent)
 
-        for episode in range(num_episodes):
-            result.add_result(self.__train_episode__(env, agent))
-
-        result.time = timer() - start
-
-        return result
+        return TrainResult(num_steps, timer() - start)
 
     @staticmethod
     def __eval_episode__(env, agent):

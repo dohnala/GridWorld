@@ -19,7 +19,7 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 500),
                 discount=0.95,
                 capacity=1,
                 batch_size=1))
@@ -32,9 +32,9 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=1000,
+            eval_every_steps=100,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -53,7 +53,7 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 500),
                 discount=0.95,
                 capacity=100,
                 batch_size=16))
@@ -66,9 +66,9 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=1000,
+            eval_every_steps=100,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -87,7 +87,7 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 500),
                 discount=0.95,
                 capacity=1,
                 batch_size=1,
@@ -101,9 +101,9 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=1000,
+            eval_every_steps=100,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -122,7 +122,7 @@ class DQNAgentWithDoubleQ(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.01),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(0.5, 0.01, 500),
+                policy=EpsilonGreedyPolicy(1, 0.01, 500),
                 discount=0.95,
                 capacity=1,
                 batch_size=1,
@@ -137,9 +137,9 @@ class DQNAgentWithDoubleQ(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=1000,
+            eval_every_steps=100,
             eval_episodes=100,
-            eval_after=100,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
@@ -158,7 +158,7 @@ class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.001),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(1, 0.01, 100),
+                policy=EpsilonGreedyPolicy(1, 0.01, 2000),
                 discount=0.95,
                 capacity=1000,
                 batch_size=32,
@@ -172,9 +172,9 @@ class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
 
     def train(self, env, agent):
         return SyncRunner(env, agent, self.seed).train(
-            train_episodes=1000,
+            max_steps=5000,
+            eval_every_steps=1000,
             eval_episodes=100,
-            eval_after=200,
             goal=self.define_train_goal)
 
     def eval(self, env, agent):
