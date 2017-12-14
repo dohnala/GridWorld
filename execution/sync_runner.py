@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 from agents.agent import RunPhase
 from execution import Runner
 from execution.result import RunResult, log_eval_result, TrainResult
-from execution.vec_env import AsyncVecEnv, SyncVecEnv
+from execution.vec_env import SyncVecEnv
 from utils.logging import logger
 
 
