@@ -1,14 +1,11 @@
 import argparse
 import os
-import random
-
-import numpy as np
-import torch
 
 from env.env import GridWorldEnv
 from execution.average_runner import AverageRunner
 from execution.result import log_average_run_result
 from utils.logging import logger
+from utils.seed import set_seed
 
 
 class Experiment:
@@ -77,7 +74,7 @@ class Experiment:
         args = self.parser.parse_args()
 
         # Set random seed
-        self.set_seed(args.seed)
+        set_seed(args.seed)
 
         def run_op(op):
             # Create task
@@ -135,20 +132,6 @@ class Experiment:
             avg_result = AverageRunner(run_eval).run(args.runs)
 
             log_average_run_result(avg_result)
-
-    @staticmethod
-    def set_seed(seed):
-        """
-        Set random seed.
-
-        :return: None
-        """
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(seed)
 
     @staticmethod
     def log_info(task, agent):

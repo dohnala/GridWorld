@@ -32,7 +32,7 @@ class DQNAgentWithoutMemoryTest(AgentTestCases.AgentTestCase):
 
     def train(self, env_fn, agent):
         return SyncRunner(env_fn, agent, self.seed).train(
-            max_steps=1000,
+            train_steps=1000,
             eval_every_steps=100,
             eval_episodes=100,
             goal=self.define_train_goal)
@@ -66,7 +66,7 @@ class DQNAgentWithMemoryTest(AgentTestCases.AgentTestCase):
 
     def train(self, env_fn, agent):
         return SyncRunner(env_fn, agent, self.seed).train(
-            max_steps=1000,
+            train_steps=1000,
             eval_every_steps=100,
             eval_episodes=100,
             goal=self.define_train_goal)
@@ -101,7 +101,7 @@ class DQNAgentWithTargetSyncTest(AgentTestCases.AgentTestCase):
 
     def train(self, env_fn, agent):
         return SyncRunner(env_fn, agent, self.seed).train(
-            max_steps=1000,
+            train_steps=1000,
             eval_every_steps=100,
             eval_episodes=100,
             goal=self.define_train_goal)
@@ -137,7 +137,7 @@ class DQNAgentWithDoubleQ(AgentTestCases.AgentTestCase):
 
     def train(self, env_fn, agent):
         return SyncRunner(env_fn, agent, self.seed).train(
-            max_steps=1000,
+            train_steps=1000,
             eval_every_steps=100,
             eval_episodes=100,
             goal=self.define_train_goal)
@@ -172,7 +172,7 @@ class DQNAgentForFindTreasureV0Test(AgentTestCases.AgentTestCase):
 
     def train(self, env_fn, agent):
         return SyncRunner(env_fn, agent, self.seed).train(
-            max_steps=5000,
+            train_steps=5000,
             eval_every_steps=1000,
             eval_episodes=100,
             goal=self.define_train_goal)

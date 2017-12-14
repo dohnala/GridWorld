@@ -37,7 +37,7 @@ class FindTreasureV0(Experiment):
 
     def train(self, env_fn, agent, seed):
         return SyncRunner(env_fn, agent, seed=seed).train(
-            max_steps=5000,
+            train_steps=5000,
             eval_every_steps=1000,
             eval_episodes=100,
             goal=self.define_goal)

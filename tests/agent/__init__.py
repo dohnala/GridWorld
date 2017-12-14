@@ -1,11 +1,8 @@
 import os
-import random
 import unittest
 
-import numpy as np
-import torch
-
 from env.env import GridWorldEnv
+from utils.seed import set_seed
 
 
 class AgentTestCases:
@@ -20,7 +17,7 @@ class AgentTestCases:
             self.seed = seed
 
         def setUp(self):
-            self.set_seed(self.seed)
+            set_seed(self.seed)
 
         def tearDown(self):
             os.remove("agent.ckp")
@@ -124,18 +121,3 @@ class AgentTestCases:
             # Assert that evaluation agent passes evaluation goal
             self.assertTrue(self.define_eval_goal(eval_result), "accuracy:{:7.2f}%, reward:{:6.2f}".format(
                 eval_result.accuracy, eval_result.reward))
-
-        @staticmethod
-        def set_seed(seed):
-            """
-            Set random seed.
-
-            :param seed: seed
-            :return: None
-            """
-            random.seed(seed)
-            np.random.seed(seed)
-            torch.manual_seed(seed)
-
-            if torch.cuda.is_available():
-                torch.cuda.manual_seed(seed)

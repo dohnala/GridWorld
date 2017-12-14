@@ -18,11 +18,11 @@ class SyncRunner(Runner):
         """
         super(SyncRunner, self).__init__(env_fn, agent, seed)
 
-    def train(self, max_steps, eval_every_steps, eval_episodes, goal=None):
+    def train(self, train_steps, eval_every_steps, eval_episodes, goal=None):
         """
         Train agent for given number of steps.
 
-        :param max_steps: maximum steps to train agent
+        :param train_steps: number steps to train agent
         :param eval_every_steps: evaluate agent every `eval_every_steps` steps
         :param eval_episodes: number of episode to evaluate agent for
         :param goal: goal which can terminate training if it is reached
@@ -37,7 +37,7 @@ class SyncRunner(Runner):
         current_step = 0
 
         while True:
-            remaining_steps = max_steps - current_step
+            remaining_steps = train_steps - current_step
             num_steps = eval_every_steps if remaining_steps > eval_every_steps else remaining_steps
 
             # Reset environment
@@ -69,7 +69,7 @@ class SyncRunner(Runner):
                 break
 
             # If number of steps exceed total number of training steps, break loop
-            if current_step >= max_steps:
+            if current_step >= train_steps:
                 logger.info("")
                 break
 

@@ -1,8 +1,4 @@
-import random
 from timeit import default_timer as timer
-
-import numpy as np
-import torch
 
 from agents.agent import RunPhase
 from execution.result import EvalEpisodeResult, EvalResult, RunResult, TrainResult
@@ -127,17 +123,3 @@ class Runner:
         result.time = timer() - start
 
         return result
-
-    @staticmethod
-    def __set_seed__(seed):
-        """
-        Set random seed.
-
-        :return: None
-        """
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed(seed)

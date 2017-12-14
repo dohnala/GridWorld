@@ -5,19 +5,22 @@ from timeit import default_timer as timer
 
 import torch.multiprocessing as mp
 
+from agents.agent import RunPhase
 from execution import Runner
-from execution.result import RunResult, log_eval_result
+from execution.result import RunResult, log_eval_result, TrainResult, EvalResult, EvalEpisodeResult
 from utils.logging import logger
+from utils.multiprocessing import deserialize, serialize
+from utils.seed import set_seed
 
 
 class AsyncRunner(Runner):
     """
-    Asynchronous runner implementation.
+    Asynchronous runner implementation which runs multiple workers in separate process to train agent.
     """
 
     def __init__(self, env_fn, agent, num_workers, seed=None):
         """
-        Initialize agent.
+        Initialize runner.
 
         :param env_fn: function to create environment
         :param agent: agent
@@ -28,27 +31,26 @@ class AsyncRunner(Runner):
 
         self.num_workers = num_workers
 
-    def train(self, max_steps, eval_every_sec, eval_episodes, goal=None):
+    def train(self, train_steps, eval_every_sec, eval_episodes, goal=None):
         """
         Train agent for given number of steps.
 
-        :param max_steps: maximum steps to train agent
+        :param train_steps: number of steps to train agent
         :param eval_every_sec: evaluate agent every `eval_every_sec` seconds
         :param eval_episodes: number of episode to evaluate agent for
         :param goal: goal which can terminate training if it is reached
         :return: result
         """
-
         # Set one thread per core
         os.environ['OMP_NUM_THREADS'] = '1'
 
         # Flag indicating that training is finished
         stop_flag = mp.Event()
 
-        # Max number of steps for each worker
-        workers_max_steps = int(max_steps / self.num_workers)
+        # Number of steps for each worker
+        workers_train_steps = int(train_steps / self.num_workers)
 
-        # Array with workers' current steps
+        # Workers' current steps
         workers_steps = mp.Array('i', self.num_workers)
 
         # Queue where the final result is put
@@ -58,23 +60,37 @@ class AsyncRunner(Runner):
 
         start = timer()
 
-        # Create evaluation process
-        p = mp.Process(target=self.__eval__, args=(CloudpickleWrapper(self.env_fn), self.agent, max_steps,
-                                                   eval_every_sec, eval_episodes, goal, stop_flag, workers_steps,
-                                                   result_queue))
-        p.start()
-        processes.append(p)
+        # Create and start evaluation process
+        eval_process = EvalProcess(
+            env_fn_serialized=serialize(self.env_fn),
+            agent=self.agent,
+            seed=self.seed + self.num_workers if self.seed is not None else None,
+            train_steps=train_steps,
+            eval_every_sec=eval_every_sec,
+            eval_episodes=eval_episodes,
+            goal_serialized=serialize(goal),
+            stop_flag=stop_flag,
+            workers_steps=workers_steps,
+            result_queue=result_queue)
 
-        # Create worker processes
+        eval_process.start()
+        processes.append(eval_process)
+
+        # Create and start worker processes
         for worker in self.agent.create_workers(self.num_workers):
-            p = mp.Process(target=self.__train_worker__, args=(CloudpickleWrapper(self.env_fn), worker,
-                                                               workers_max_steps, stop_flag, workers_steps))
-            p.start()
-            processes.append(p)
+            worker_process = WorkerProcess(
+                env_fn_serialized=serialize(self.env_fn),
+                worker=worker,
+                seed=self.seed + worker.worker_id if self.seed is not None else None,
+                train_steps=workers_train_steps,
+                workers_steps=workers_steps,
+                stop_flag=stop_flag)
+
+            worker_process.start()
+            processes.append(worker_process)
 
         # Wait until all processes finish execution
-        for process in processes:
-            process.join()
+        [process.join() for process in processes]
 
         # Get result from queue
         result = result_queue.get()
@@ -82,68 +98,144 @@ class AsyncRunner(Runner):
 
         return result
 
-    def __train_worker__(self, env_fn_wrapper, worker, max_steps, stop_flag, workers_steps, batch_steps=10):
 
+class WorkerProcess(mp.Process):
+    """
+    Process which trains worker on isolated environment.
+    """
+
+    def __init__(self, env_fn_serialized, worker, seed, train_steps, workers_steps, stop_flag, batch_steps=10):
+        """
+        Initialize worker process.
+
+        :param env_fn_serialized: serialized function to create environment
+        :param worker: worker
+        :param seed: seed
+        :param train_steps: number of training steps
+        :param workers_steps: array for storing workers' current step
+        :param stop_flag: flag indicating that training should be terminated
+        :param batch_steps: how many steps should be trained before checking conditions
+        """
+        super(WorkerProcess, self).__init__()
+
+        self.env = deserialize(env_fn_serialized)()
+        self.worker = worker
+        self.seed = seed
+        self.train_steps = train_steps
+        self.workers_steps = workers_steps
+        self.stop_flag = stop_flag
+        self.batch_steps = batch_steps
+
+    def run(self):
+        """
+        Run process.
+
+        :return: None
+        """
         # Set random seed for this process
-        if self.seed:
-            self.__set_seed__(self.seed + worker.worker_id)
-
-        # Create environment
-        env = env_fn_wrapper.o()
+        set_seed(self.seed)
 
         # Initialize worker's current step
-        workers_steps[worker.worker_id] = 0
+        self.workers_steps[self.worker.worker_id] = 0
 
         # Train until stop flag is set or number of training steps is reached
-        while not stop_flag.is_set() and workers_steps[worker.worker_id] < max_steps:
+        while not self.stop_flag.is_set() and self.workers_steps[self.worker.worker_id] < self.train_steps:
             # Train worker for batch steps
-            self.__train_steps__(env, worker, batch_steps)
+            self.__train__(self.batch_steps)
 
-            # Update worker's progress
-            workers_steps[worker.worker_id] += batch_steps
+    def __train__(self, num_steps):
+        """
+        Train worker for given number of steps.
 
-    def __eval__(self, env_fn_wrapper, agent, max_steps, eval_every_sec, eval_episodes, goal, stop_flag,
-                 workers_progress, result_queue):
+        :param num_steps: number of steps
+        :return: None
+        """
+        start = timer()
 
-        # Return True if all workers have finished training
-        def workers_finished():
-            return sum(workers_progress) >= max_steps
+        for step in range(num_steps):
+            # Get current state
+            state = self.env.state
 
-        # Sleep while checking if workers already finished training
-        def wait_for_eval():
-            seconds = 0
+            # Get worker's action
+            action = self.worker.act(state, RunPhase.TRAIN)
 
-            while True:
-                time.sleep(1)
-                seconds += 1
+            # Execute given action in environment
+            reward, next_state, done = self.env.step(action)
 
-                if workers_finished() or seconds >= eval_every_sec:
-                    break
+            # Pass observed transition to the worker
+            self.worker.observe(state, action, reward, next_state, done)
 
+            # Reset environment when episode ends
+            if done:
+                self.env.reset()
+
+        # Update worker's progress
+        self.workers_steps[self.worker.worker_id] += num_steps
+
+        # Return result
+        return TrainResult(self.batch_steps, timer() - start)
+
+
+class EvalProcess(mp.Process):
+    """
+    Process which evaluates an agent.
+    """
+
+    def __init__(self, env_fn_serialized, agent, seed, train_steps, eval_every_sec, eval_episodes, goal_serialized,
+                 workers_steps, stop_flag, result_queue):
+        """
+        Initialize evaluation process.
+
+        :param env_fn_serialized: serialized function to create an environment
+        :param agent: agent to evaluate
+        :param seed: seed
+        :param train_steps: number of training steps
+        :param eval_every_sec: evaluate agent every `eval_every_sec` seconds
+        :param eval_episodes: number of episode to evaluate agent for
+        :param goal_serialized: serialized goal which can terminate training if it is reached
+        :param workers_steps: array for storing workers' current step
+        :param stop_flag: flag indicating that training should be terminated
+        :param result_queue: queue where result should be write
+        """
+        super(EvalProcess, self).__init__()
+
+        self.env = deserialize(env_fn_serialized)()
+        self.agent = agent
+        self.seed = seed
+        self.train_steps = train_steps
+        self.eval_every_sec = eval_every_sec
+        self.eval_episodes = eval_episodes
+        self.goal = deserialize(goal_serialized)
+        self.workers_steps = workers_steps
+        self.stop_flag = stop_flag
+        self.result_queue = result_queue
+
+    def run(self):
+        """
+        Run process.
+
+        :return: None
+        """
         # Set random seed for this process
-        if self.seed:
-            self.__set_seed__(self.seed + self.num_workers)
-
-        # Create environment
-        env = env_fn_wrapper.o()
+        set_seed(self.seed)
 
         # Create eval agent
-        eval_agent = copy.deepcopy(agent)
+        eval_agent = copy.deepcopy(self.agent)
 
         eval_results = []
 
-        while not stop_flag.is_set():
+        while not self.stop_flag.is_set():
             # Wait for evaluation
-            wait_for_eval()
+            self.__wait_for_eval__()
 
             # Find out current step
-            current_step = sum(workers_progress)
+            current_step = sum(self.workers_steps)
 
             # Copy current agent's state to eval agent
-            eval_agent.model.load_state_dict(agent.model.state_dict())
+            eval_agent.model.load_state_dict(self.agent.model.state_dict())
 
             # Evaluate agent for given number of episodes
-            result = self.__eval_episodes__(env, eval_agent, eval_episodes)
+            result = self.__eval__(eval_agent, self.eval_episodes)
 
             # Store evaluation result
             eval_results.append(result)
@@ -152,33 +244,79 @@ class AsyncRunner(Runner):
             log_eval_result(current_step, result)
 
             # If termination condition passed given evaluation result, finish training
-            if goal and goal(result):
+            if self.goal and self.goal(result):
                 logger.info("")
                 logger.info("Termination condition passed")
                 logger.info("")
-                stop_flag.set()
+                self.stop_flag.set()
 
             # If workers reached total number of training steps, finish training
-            if workers_finished():
+            if self.__workers_finished__():
                 logger.info("")
-                stop_flag.set()
+                self.stop_flag.set()
 
         # Put result to the queue
-        result_queue.put(RunResult([], eval_results))
+        self.result_queue.put(RunResult([], eval_results))
 
+    def __eval__(self, eval_agent, num_episodes):
+        """
+        Evaluate agent for given number of episodes.
 
-class CloudpickleWrapper(object):
-    """
-    Uses cloudpickle to serialize object (otherwise multiprocessing tries to use pickle).
-    """
+        :param eval_agent: agent
+        :param num_episodes: number of episodes
+        :return: None
+        """
+        result = EvalResult()
 
-    def __init__(self, o):
-        self.o = o
+        start = timer()
 
-    def __getstate__(self):
-        import cloudpickle
-        return cloudpickle.dumps(self.x)
+        for episode in range(num_episodes):
+            episode_reward = 0
 
-    def __setstate__(self, ob):
-        import pickle
-        self.x = pickle.loads(ob)
+            # Reset an environment before episode
+            state = self.env.reset()
+
+            while not self.env.is_terminal():
+                # Get agent's action
+                action = eval_agent.act(state, RunPhase.EVAL)
+
+                # Execute given action in environment
+                reward, next_state, done = self.env.step(action)
+
+                episode_reward += reward
+
+                # Update state
+                state = next_state
+
+            # Add episode result
+            result.add_result(EvalEpisodeResult(
+                reward=episode_reward,
+                steps=self.env.state.step,
+                has_won=self.env.has_won()))
+
+        result.time = timer() - start
+
+        return result
+
+    def __workers_finished__(self):
+        """
+        Return True if workers finished training.
+
+        :return: True if workers finished training
+        """
+        return sum(self.workers_steps) >= self.train_steps
+
+    def __wait_for_eval__(self):
+        """
+        Wait for next evaluation.
+
+        :return: None
+        """
+        seconds = 0
+
+        while True:
+            time.sleep(1)
+            seconds += 1
+
+            if self.__workers_finished__() or seconds >= self.eval_every_sec:
+                break

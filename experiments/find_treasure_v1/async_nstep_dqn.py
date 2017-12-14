@@ -35,7 +35,7 @@ class FindTreasureV1(Experiment):
 
     def train(self, env_fn, agent, seed):
         return AsyncRunner(env_fn, agent, num_workers=4, seed=seed).train(
-            max_steps=400000,
+            train_steps=400000,
             eval_every_sec=1,
             eval_episodes=100,
             goal=self.define_goal)

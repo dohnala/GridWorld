@@ -51,7 +51,7 @@ class EvalResult:
 
 
 def log_eval_result(current_step, result):
-    logger.info("Evaluation at {:4d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
+    logger.info("Evaluation at {:6d} - accuracy:{:7.2f}%, reward:{:6.2f}, steps:{:6.2f}".format(
         current_step,
         result.get_accuracy(),
         result.get_mean_reward(),
