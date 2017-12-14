@@ -3,11 +3,11 @@ class VecEnv:
     Vectorized environment.
     """
 
-    def get_state(self):
+    def get_states(self):
         """
-        Return current state.
+        Return current states.
 
-        :return: current state
+        :return: list of current states
         """
         pass
 
@@ -23,13 +23,16 @@ class VecEnv:
     def reset(self):
         """
         Reset all environments.
+
+        :return: list of states
         """
         pass
 
     def close(self):
         """
         Close this vectorized environment.
-        :return:
+
+        :return: None
         """
         pass
 
@@ -48,7 +51,7 @@ class SyncVecEnv(VecEnv):
         """
         self.envs = [env_fn() for _ in range(num_env)]
 
-    def get_state(self):
+    def get_states(self):
         return [env.state for env in self.envs]
 
     def step(self, actions):
@@ -63,8 +66,7 @@ class SyncVecEnv(VecEnv):
             if done:
                 self.envs[i].reset()
 
-        return rewards, next_states, dones
+        return list(rewards), list(next_states), list(dones)
 
     def reset(self):
-        for env in self.envs:
-            env.reset()
+        return [env.reset() for env in self.envs]

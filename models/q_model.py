@@ -136,7 +136,7 @@ class QModel(Model):
 
         return self.network(states).data.cpu().numpy()
 
-    def update(self, states, actions, rewards, next_states, done):
+    def update(self, states, actions, rewards, next_states, dones):
         """
         Update model using estimating target from given experience.
 
@@ -144,8 +144,37 @@ class QModel(Model):
         :param actions: actions
         :param rewards: rewards
         :param next_states: next states
-        :param done: done flags
+        :param dones: done flags
         :return: loss
+        """
+        # Compute predictions
+        predictions = self.__calculate_predictions__(states, actions)
+
+        # Calculate targets
+        targets = self.__calculate_targets__(rewards, next_states, dones)
+
+        # Compute Huber loss from predictions and targets
+        loss = F.smooth_l1_loss(predictions, targets)
+
+        # Perform optimization step to update parameter w.r.t given loss
+        self.optimizer.step(loss, self.parameters())
+
+        # Increment number of updates
+        self.updates += 1
+
+        # Sync target network with main network
+        if self.target_sync and self.updates % self.target_sync == 0:
+            self.__sync_target_network__()
+
+        return loss.data.cpu().numpy()[0]
+
+    def __calculate_predictions__(self, states, actions):
+        """
+        Calculate model predictions.
+
+        :param states: states
+        :param actions: actions
+        :return: predictions
         """
         # Turn states into variable
         states = Variable(torch.from_numpy(states), requires_grad=False)
@@ -163,42 +192,24 @@ class QModel(Model):
             actions = actions.cuda()
 
         # Compute predictions of actions in given states
-        predictions = outputs.gather(1, actions)
+        return outputs.gather(1, actions)
 
-        # Calculate targets
-        targets = self.__calculate_targets__(rewards, next_states, done)
-
-        # Compute Huber loss from predictions and targets
-        loss = F.smooth_l1_loss(predictions, targets)
-
-        # Perform optimization step to update parameter w.r.t given loss
-        self.optimizer.step(loss, self.parameters())
-
-        # Increment number of updates
-        self.updates += 1
-
-        # Sync target network with main network
-        if self.target_sync and self.updates % self.target_sync == 0:
-            self.__sync_target_network__()
-
-        return loss.data.cpu().numpy()[0]
-
-    def __calculate_targets__(self, rewards, next_states, done):
+    def __calculate_targets__(self, rewards, next_states, dones):
         """
         Calculate targets for model update.
 
         :param rewards: rewards
         :param next_states: next states
-        :param done: done
+        :param dones: done flags
         :return: targets
         """
         # Create masks to differentiate terminal states
-        done_mask = torch.from_numpy(done)
+        done_masks = torch.from_numpy(dones)
 
         if self.use_cuda:
-            done_mask = done_mask.cuda()
+            done_masks = done_masks.cuda()
 
-        non_done_mask = 1 - done_mask
+        non_done_masks = 1 - done_masks
 
         # Turns rewards into variables
         rewards = Variable(torch.from_numpy(rewards))
@@ -207,10 +218,10 @@ class QModel(Model):
             rewards = rewards.cuda()
 
         # Select only next states which are not terminal
-        non_terminal_next_states = np.asarray([next_states[i] for i in range(len(done)) if not done[i][0]])
+        non_terminal_next_states = np.asarray([next_states[i] for i in range(len(dones)) if not dones[i][0]])
 
         # Create targets variable
-        targets = Variable(torch.zeros(len(done), 1), requires_grad=False)
+        targets = Variable(torch.zeros(len(dones), 1), requires_grad=False)
 
         if self.use_cuda:
             targets = targets.cuda()
@@ -240,10 +251,10 @@ class QModel(Model):
             q_next.volatile = False
 
             # Compute targets for non terminal states
-            targets[non_done_mask] = rewards[non_done_mask] + self.discount * q_next
+            targets[non_done_masks] = rewards[non_done_masks] + self.discount * q_next
 
         # Compute targets for terminal states
-        targets[done_mask] = rewards[done_mask].detach()
+        targets[done_masks] = rewards[done_masks].detach()
 
         return targets
 

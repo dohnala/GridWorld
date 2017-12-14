@@ -1,3 +1,5 @@
+import numpy as np
+
 from agents import Agent, AgentConfig
 
 
@@ -37,22 +39,44 @@ class NStepAgent(Agent):
         """
         super(NStepAgent, self).__init__(**kwargs)
 
-        self.n_step = self.config.n_step
+        self.n_step = self.config.n_step + 1 if self.config.keep_last else self.config.n_step
         self.keep_last = self.config.keep_last
-        self.transitions = []
 
-    def __observe_transition__(self, transition):
-        # Store transition
-        self.transitions.append(transition)
+        self.states = []
+        self.actions = []
+        self.rewards = []
+        self.next_states = []
+        self.dones = []
 
-        # Perform update when episode is finished or N transitions are gathered
-        if transition.done or len(self.transitions) == self.n_step:
+    def __observe__(self, states, actions, rewards, next_states, dones):
+        # Store transitions
+        self.states.append(np.asarray(states))
+        self.actions.append(np.vstack(actions))
+        self.rewards.append(np.vstack(rewards))
+        self.next_states.append(np.asarray(next_states))
+        self.dones.append(np.vstack(dones))
+
+        # Perform update when N transitions are observed
+        if len(self.states) == self.n_step:
             # Update model using given transitions
-            self.__update_model__(self.transitions)
+            self.__update_model__(
+                states=np.asarray(self.states),
+                actions=np.asarray(self.actions),
+                rewards=np.asarray(self.rewards),
+                next_states=np.asarray(self.next_states),
+                dones=np.asarray(self.dones))
 
-            if not transition.done and self.keep_last:
+            if self.keep_last:
                 # Keep last transition after an update
-                self.transitions = [self.transitions[-1]]
+                self.states = [self.states[-1]]
+                self.actions = [self.actions[-1]]
+                self.rewards = [self.rewards[-1]]
+                self.next_states = [self.next_states[-1]]
+                self.dones = [self.dones[-1]]
             else:
                 # Clear transitions after an update
-                self.transitions = []
+                self.states = []
+                self.actions = []
+                self.rewards = []
+                self.next_states = []
+                self.dones = []

@@ -1,6 +1,11 @@
 import random
-from collections import deque
+from collections import deque, namedtuple
+
+import numpy as np
+
 from agents import Agent, AgentConfig
+
+Transition = namedtuple('Transition', 'state action reward next_state done')
 
 
 class MemoryAgentConfig(AgentConfig):
@@ -41,6 +46,7 @@ class MemoryAgent(Agent):
     """
     Memory agent which stores transitions in memory and used them for batch training.
     """
+
     def __init__(self, **kwargs):
         super(MemoryAgent, self).__init__(**kwargs)
 
@@ -49,23 +55,36 @@ class MemoryAgent(Agent):
         self.train_start = self.config.train_start
         self.memory = ReplayMemory(self.capacity)
 
-    def __observe_transition__(self, transition):
-        # Add transition into memory
-        self.memory.add(transition)
+    def __observe__(self, states, actions, rewards, next_states, dones):
+        # Convert values into transitions
+        transitions = zip(states, actions, rewards, next_states, dones)
+        transitions = list(map(lambda transition: Transition(*transition), transitions))
+
+        # Add transitions into memory
+        self.memory.add(transitions)
 
         # If train should start
         if self.step >= self.train_start:
             # Sample batch from memory
             transitions = self.memory.sample(self.batch_size)
 
+            # Convert transition into values
+            states, actions, rewards, next_states, dones = zip(*transitions)
+
             # Update model using given transitions
-            self.__update_model__(transitions)
+            self.__update_model__(
+                states=np.asarray(states),
+                actions=np.vstack(actions),
+                rewards=np.vstack(rewards).astype(np.float32),
+                next_states=np.asarray(next_states),
+                dones=np.vstack(dones).astype(np.uint8))
 
 
 class ReplayMemory:
     """
     Replay memory which stores a transitions.
     """
+
     def __init__(self, capacity):
         """
         Initialize replay memory with given capacity.
@@ -75,14 +94,14 @@ class ReplayMemory:
         self.capacity = capacity
         self.memory = deque(maxlen=self.capacity)
 
-    def add(self, transition):
+    def add(self, transitions):
         """
-        Add given transition into memory.
+        Add given transitions into memory.
 
-        :param transition: transition
+        :param transitions: list of transitions
         :return: None
         """
-        self.memory.append(transition)
+        self.memory.extend(transitions)
 
     def sample(self, batch_size):
         """

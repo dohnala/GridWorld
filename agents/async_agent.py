@@ -61,8 +61,8 @@ class WorkerAgent(Agent):
         # Create optimizer to update shared model's parameters
         return optimizer_creator.create(self.shared_model.parameters())
 
-    def __update_model__(self, transitions):
-        super(WorkerAgent, self).__update_model__(transitions)
+    def __update_model__(self, states, actions, rewards, next_states, dones):
+        super(WorkerAgent, self).__update_model__(states, actions, rewards, next_states, dones)
 
         # Copy shared model after each update
         self.__copy_shared_model__()

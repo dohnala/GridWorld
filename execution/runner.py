@@ -1,7 +1,7 @@
 from timeit import default_timer as timer
 
 from agents.agent import RunPhase
-from execution.result import EvalEpisodeResult, EvalResult, RunResult, TrainResult
+from execution.result import EvalEpisodeResult, EvalResult, RunResult
 
 
 class Runner:
@@ -33,46 +33,6 @@ class Runner:
         return RunResult([], [eval_result])
 
     @staticmethod
-    def __train_step__(env, agent):
-        """
-        Train given agent on given environment for one step.
-
-        :param env: environment
-        :param agent: agent
-        :return: None
-        """
-        state = env.state
-
-        # Get agent's action
-        action = agent.act(state, RunPhase.TRAIN)
-
-        # Execute given action in environment
-        reward, next_state, done = env.step(action)
-
-        # Pass observed transition to the agent
-        agent.observe(state, action, reward, next_state, done)
-
-        # Reset environment when episode ends
-        if done:
-            env.reset()
-
-    def __train_steps__(self, env, agent, num_steps):
-        """
-        Train given agent on given environment for number of steps.
-
-        :param env: environment
-        :param agent: agent
-        :param num_steps: number of steps
-        :return: train result
-        """
-        start = timer()
-
-        for step in range(num_steps):
-            self.__train_step__(env, agent)
-
-        return TrainResult(num_steps, timer() - start)
-
-    @staticmethod
     def __eval_episode__(env, agent):
         """
         Eval agent on given environment for one episode.
@@ -88,7 +48,7 @@ class Runner:
 
         while not env.is_terminal():
             # Get agent's action
-            action = agent.act(state, RunPhase.EVAL)
+            action = agent.act([state], RunPhase.EVAL)[0]
 
             # Execute given action in environment
             reward, next_state, done = env.step(action)

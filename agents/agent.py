@@ -1,4 +1,3 @@
-import collections
 from enum import Enum
 
 import numpy as np
@@ -8,8 +7,6 @@ from encoders import GridWorldEncoder
 from models import Model
 from optimizers import OptimizerCreator
 from policies import ExplorationPolicy
-
-Transition = collections.namedtuple('Transition', 'state action reward next_state done')
 
 
 class RunPhase(Enum):
@@ -87,48 +84,48 @@ class Agent:
         # Configure model with optimizer
         self.model.set_optimizer(self.optimizer)
 
-    def act(self, state, phase):
+    def act(self, states, phase):
         """
-        Select an action to take for given state and phase.
+        Select an actions to take for given states and phase.
 
-        :param state: current state
+        :param states: list of states
         :param phase: current phase
-        :return: action to take
+        :return: list of actions to take
         """
         # Set phase
         if self.current_phase != phase:
             self.__set_phase__(phase)
 
         # Encode state and use model to predict action values
-        states = np.expand_dims(self.__encode_state__(state), axis=0)
-        action_values = self.model.predict(states)[0]
+        states = np.asarray([self.__encode_state__(state) for state in states])
+        action_values = self.model.predict(states)
 
         # Select an action using policy
-        action = self.current_policy.select_action(action_values, self.step)
+        actions = [self.current_policy.select_action(values, self.step) for values in action_values]
 
-        return action
+        return actions
 
-    def observe(self, state, action, reward, next_state, done):
+    def observe(self, states, actions, rewards, next_states, dones):
         """
-        Observe current transition.
+        Observe list of transitions.
 
-        :param state: state in which action was taken
-        :param action: action taken
-        :param reward: reward obtained for given action
-        :param next_state: state action result in
-        :param done: if next_state is terminal
+        :param states: list of states in which actions was taken
+        :param actions: actions taken
+        :param rewards: rewards obtained for given actions
+        :param next_states: states actions result in
+        :param dones: if next_states are terminal
         :return None
         """
-        self.step += 1
+        # Update current step
+        self.step += len(states)
 
-        transition = Transition(
-            state=self.__encode_state__(state),
-            action=action,
-            reward=reward,
-            next_state=self.__encode_state__(next_state),
-            done=done)
-
-        self.__observe_transition__(transition)
+        # Encode states and observe transitions
+        self.__observe__(
+            states=[self.__encode_state__(state) for state in states],
+            actions=actions,
+            rewards=rewards,
+            next_states=[self.__encode_state__(state) for state in next_states],
+            dones=dones)
 
     def save(self, file):
         """
@@ -180,24 +177,37 @@ class Agent:
             self.model.set_eval_mode()
             self.current_policy = self.eval_policy
 
-    def __observe_transition__(self, transition):
+    def __observe__(self, states, actions, rewards, next_states, dones):
         """
-        Observe given transition.
+        Observe list of transitions.
 
-        :param transition: transition
-        :return: None
+        :param states: list of states in which actions was taken
+        :param actions: actions taken
+        :param rewards: rewards obtained for given actions
+        :param next_states: states actions result in
+        :param dones: if next_states are terminal
+        :return None
         """
-        # Update model using given transition
-        self.__update_model__([transition])
+        # Update model using given transitions
+        self.__update_model__(
+            states=np.asarray(states),
+            actions=np.vstack(actions),
+            rewards=np.vstack(rewards).astype(np.float32),
+            next_states=np.asarray(next_states),
+            dones=np.vstack(dones).astype(np.uint8))
 
-    def __update_model__(self, transitions):
+    def __update_model__(self, states, actions, rewards, next_states, dones):
         """
         Update model using given transitions.
 
-        :param transitions: transitions
+        :param states: list of states in which actions was taken
+        :param actions: actions taken
+        :param rewards: rewards obtained for given actions
+        :param next_states: states actions result in
+        :param dones: if next_states are terminal
         :return: None
         """
-        self.last_loss = self.model.update(*self.__split_transitions__(transitions))
+        self.last_loss = self.model.update(states, actions, rewards, next_states, dones)
 
     def __encode_state__(self, state):
         """
@@ -207,21 +217,3 @@ class Agent:
         :return: encoded state
         """
         return self.encoder.encode(state)
-
-    @staticmethod
-    def __split_transitions__(transitions):
-        """
-        Split given transitions into batches of states, actions, rewards, next_states and done.
-
-        :param transitions: transitions
-        :return: tuple (states, actions, rewards, next_states, done)
-        """
-        states, actions, rewards, next_states, done = zip(*transitions)
-
-        states = np.asarray(states)
-        actions = np.vstack(actions)
-        rewards = np.vstack(rewards).astype(np.float32)
-        next_states = np.asarray(next_states)
-        done = np.vstack(done).astype(np.uint8)
-
-        return states, actions, rewards, next_states, done

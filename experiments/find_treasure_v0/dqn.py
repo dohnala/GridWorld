@@ -26,7 +26,7 @@ class FindTreasureV0(Experiment):
                 encoder=OneHotEncoder(width, height),
                 optimizer=AdamOptimizer(0.001),
                 network=MLP(),
-                policy=EpsilonGreedyPolicy(1, 0.01, 2000),
+                policy=EpsilonGreedyPolicy(1, 0.01, 2500),
                 discount=0.95,
                 capacity=1000,
                 batch_size=32,

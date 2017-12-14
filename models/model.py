@@ -62,7 +62,7 @@ class Model:
         """
         pass
 
-    def update(self, states, actions, rewards, next_states, done):
+    def update(self, states, actions, rewards, next_states, dones):
         """
         Update model parameters using given experience.
 
@@ -70,7 +70,7 @@ class Model:
         :param actions: actions taken from states
         :param rewards: reward obtained by taking actions
         :param next_states: states resulting by taking actions
-        :param done: flags representing if next states are terminals
+        :param dones: flags representing if next states are terminals
         :return: None
         """
         pass

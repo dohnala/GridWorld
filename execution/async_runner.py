@@ -157,13 +157,13 @@ class WorkerProcess(mp.Process):
             state = self.env.state
 
             # Get worker's action
-            action = self.worker.act(state, RunPhase.TRAIN)
+            action = self.worker.act([state], RunPhase.TRAIN)[0]
 
             # Execute given action in environment
             reward, next_state, done = self.env.step(action)
 
             # Pass observed transition to the worker
-            self.worker.observe(state, action, reward, next_state, done)
+            self.worker.observe([state], [action], [reward], [next_state], [done])
 
             # Reset environment when episode ends
             if done:
@@ -278,7 +278,7 @@ class EvalProcess(mp.Process):
 
             while not self.env.is_terminal():
                 # Get agent's action
-                action = eval_agent.act(state, RunPhase.EVAL)
+                action = eval_agent.act([state], RunPhase.EVAL)[0]
 
                 # Execute given action in environment
                 reward, next_state, done = self.env.step(action)

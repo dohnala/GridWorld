@@ -1,5 +1,9 @@
+from timeit import default_timer as timer
+
+from agents.agent import RunPhase
 from execution import Runner
-from execution.result import RunResult, log_eval_result
+from execution.result import RunResult, log_eval_result, TrainResult
+from execution.vec_env import SyncVecEnv
 from utils.logging import logger
 
 
@@ -8,15 +12,18 @@ class SyncRunner(Runner):
     Synchronous runner implementation.
     """
 
-    def __init__(self, env_fn, agent, seed=None):
+    def __init__(self, env_fn, agent, num_processes=1, seed=None):
         """
         Initialize runner.
 
         :param env_fn: function to create environment
         :param agent: agent
+        :param num_processes: number of processes
         :param seed: random seed
         """
         super(SyncRunner, self).__init__(env_fn, agent, seed)
+
+        self.num_processes = num_processes
 
     def train(self, train_steps, eval_every_steps, eval_episodes, goal=None):
         """
@@ -28,9 +35,11 @@ class SyncRunner(Runner):
         :param goal: goal which can terminate training if it is reached
         :return: result
         """
-        # Create environment
-        env = self.env_fn()
+        # Create environments
+        train_envs = SyncVecEnv(self.env_fn, self.num_processes)
+        eval_env = self.env_fn()
 
+        # results
         train_results = []
         eval_results = []
 
@@ -40,11 +49,8 @@ class SyncRunner(Runner):
             remaining_steps = train_steps - current_step
             num_steps = eval_every_steps if remaining_steps > eval_every_steps else remaining_steps
 
-            # Reset environment
-            env.reset()
-
             # Train agent
-            train_result = self.__train_steps__(env, self.agent, num_steps)
+            train_result = self.__train_steps__(train_envs, self.agent, num_steps)
 
             # Store training result
             train_results.append(train_result)
@@ -53,7 +59,7 @@ class SyncRunner(Runner):
             current_step += num_steps
 
             # Evaluate agent
-            eval_result = self.__eval_episodes__(env, self.agent, eval_episodes)
+            eval_result = self.__eval_episodes__(eval_env, self.agent, eval_episodes)
 
             # Log evaluation result
             log_eval_result(current_step, eval_result)
@@ -75,3 +81,29 @@ class SyncRunner(Runner):
 
         # Return run result
         return RunResult(train_results, eval_results)
+
+    def __train_steps__(self, envs, agent, num_steps):
+        """
+        Train given agent on given environments for number of steps.
+
+        :param envs: environments
+        :param agent: agent
+        :param num_steps: number of steps
+        :return: train result
+        """
+        start = timer()
+
+        for step in range(int(num_steps / self.num_processes)):
+            # Get current states
+            states = envs.get_states()
+
+            # Get agent's action
+            actions = agent.act(states, RunPhase.TRAIN)
+
+            # Execute given action in environment
+            rewards, next_states, dones = envs.step(actions)
+
+            # Pass observed transition to the agent
+            agent.observe(states, actions, rewards, next_states, dones)
+
+        return TrainResult(num_steps, timer() - start)
