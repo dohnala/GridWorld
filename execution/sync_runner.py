@@ -1,9 +1,10 @@
+import os
 from timeit import default_timer as timer
 
 from agents.agent import RunPhase
 from execution import Runner
 from execution.result import RunResult, log_eval_result, TrainResult
-from execution.vec_env import SyncVecEnv
+from execution.vec_env import AsyncVecEnv, SyncVecEnv
 from utils.logging import logger
 
 
@@ -35,8 +36,11 @@ class SyncRunner(Runner):
         :param goal: goal which can terminate training if it is reached
         :return: result
         """
+        # Set one thread per core
+        os.environ['OMP_NUM_THREADS'] = '1'
+
         # Create environments
-        train_envs = SyncVecEnv(self.env_fn, self.num_processes)
+        train_envs = SyncVecEnv(self.env_fn, self.num_processes, self.seed)
         eval_env = self.env_fn()
 
         # results
@@ -78,6 +82,9 @@ class SyncRunner(Runner):
             if current_step >= train_steps:
                 logger.info("")
                 break
+
+        # Close vectorized environments
+        train_envs.close()
 
         # Return run result
         return RunResult(train_results, eval_results)
