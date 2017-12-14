@@ -34,14 +34,14 @@ class FindTreasureV1(Experiment):
         return result.get_accuracy() == 100 and result.get_mean_reward() >= 0.90
 
     def train(self, env_fn, agent, seed):
-        return AsyncRunner(env_fn, agent, num_workers=4, seed=seed).train(
+        return AsyncRunner(env_fn, agent, num_processes=4, seed=seed).train(
             train_steps=400000,
             eval_every_sec=1,
             eval_episodes=100,
             goal=self.define_goal)
 
     def eval(self, env_fn, agent, seed):
-        return AsyncRunner(env_fn, agent, num_workers=4, seed=seed).eval(
+        return AsyncRunner(env_fn, agent, num_processes=4, seed=seed).eval(
             eval_episodes=100)
 
 

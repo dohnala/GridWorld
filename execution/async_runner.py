@@ -18,18 +18,18 @@ class AsyncRunner(Runner):
     Asynchronous runner implementation which runs multiple workers in separate process to train agent.
     """
 
-    def __init__(self, env_fn, agent, num_workers, seed=None):
+    def __init__(self, env_fn, agent, num_processes, seed=None):
         """
         Initialize runner.
 
         :param env_fn: function to create environment
         :param agent: agent
-        :param num_workers: number of workers
+        :param num_processes: number of processes
         :param seed: random seed
         """
         super(AsyncRunner, self).__init__(env_fn, agent, seed)
 
-        self.num_workers = num_workers
+        self.num_processes = num_processes
 
     def train(self, train_steps, eval_every_sec, eval_episodes, goal=None):
         """
@@ -48,10 +48,10 @@ class AsyncRunner(Runner):
         stop_flag = mp.Event()
 
         # Number of steps for each worker
-        workers_train_steps = int(train_steps / self.num_workers)
+        workers_train_steps = int(train_steps / self.num_processes)
 
         # Workers' current steps
-        workers_steps = mp.Array('i', self.num_workers)
+        workers_steps = mp.Array('i', self.num_processes)
 
         # Queue where the final result is put
         result_queue = mp.Queue()
@@ -64,7 +64,7 @@ class AsyncRunner(Runner):
         eval_process = EvalProcess(
             env_fn_serialized=serialize(self.env_fn),
             agent=self.agent,
-            seed=self.seed + self.num_workers if self.seed is not None else None,
+            seed=self.seed + self.num_processes if self.seed is not None else None,
             train_steps=train_steps,
             eval_every_sec=eval_every_sec,
             eval_episodes=eval_episodes,
@@ -77,7 +77,7 @@ class AsyncRunner(Runner):
         processes.append(eval_process)
 
         # Create and start worker processes
-        for worker in self.agent.create_workers(self.num_workers):
+        for worker in self.agent.create_workers(self.num_processes):
             worker_process = WorkerProcess(
                 env_fn_serialized=serialize(self.env_fn),
                 worker=worker,
